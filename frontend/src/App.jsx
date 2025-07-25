@@ -16,7 +16,7 @@ import GlobalContextProvider from "./context/GlobalContext";
 import BudgetsDashboard from './pages/Budget'
 import Navbar from './components/Navbar'
 import IncomePage from './pages/Income'
-import ExpensePage from './pages/expense'
+import ExpensePage from './pages/Expense'
 import {Toaster} from 'react-hot-toast'
 import BillPage from './pages/BillPage'
 import UpgradePage from './pages/Upgrade'
