@@ -10,7 +10,6 @@ import * as XLSX from 'xlsx';
 import Sidebar from '../components/Sidebar';
 import axios from 'axios';
 import { ArrowDown, ArrowUp, ArrowUpDown, ChevronLeft, ChevronRight, LucideEdit, LucideTractor, LucideTrash } from 'lucide-react';
-import { getIncomes } from '../../../backend/controllers/income';
 
 // Add custom styles to ensure proper centering
 const customStyles = `
