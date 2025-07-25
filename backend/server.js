@@ -9,7 +9,7 @@ import Chatrouter from "./routes/aiChatRoutes.js";
 import { startCronJobs } from "./sender/cronJobs.js";
 
 const app=express();
-const allowedOrigins = ['http://localhost:5173','http://192.168.0.109:5173'];
+const allowedOrigins = ['https://finvista-finance-management-app.vercel.app','https://finvista.vercel.app', 'http://localhost:5173','http://192.168.0.109:5173'];
 
 app.use(cors({
     origin: function (origin, callback) {
