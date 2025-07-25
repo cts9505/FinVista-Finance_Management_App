@@ -25,7 +25,7 @@ import SecurityTab from '../components/ChangePassword'
 import { toast } from 'react-toastify';
 import { Navigate, useNavigate } from 'react-router-dom';
 import Sidebar from '../components/Sidebar';
-import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
+import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import { formatDistanceToNow } from 'date-fns';
 import ChangePasswordForm from '../components/ChangePassword';
 import { AppContent } from '../context/AppContext';
