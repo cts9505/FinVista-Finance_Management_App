@@ -46,7 +46,6 @@ const userSchema = new mongoose.Schema({
     },
     phone: {
         type: String,
-        unique: true,
         default: null
     },
     address: {
@@ -131,6 +130,10 @@ const userSchema = new mongoose.Schema({
     isFirstLogin: {
         type: Boolean,
         default: false
+    },
+    loginStreak: {
+        type: Number,
+        default: 0
     },
     lastLogin: {
         type: Date,
@@ -237,14 +240,26 @@ const userSchema = new mongoose.Schema({
     timestamps: true
 });
 
+userSchema.index(
+    { phone: 1 }, 
+    { 
+        unique: true, 
+        partialFilterExpression: { phone: { $ne: null } } 
+    }
+);
+
 userSchema.pre('save', function(next) {
-    if (this.loginHistory.length > 3) {
+
+    if (this.isModified('loginHistory') && this.loginHistory.length > 3) {
         this.loginHistory = this.loginHistory.slice(-3);
     }
+
+
     if (this.isDeactivated && this.isModified('lastLogin')) {
         this.isDeactivated = false;
         this.accountDeletionDate = null;
-      }
+    }
+
     next();
 });
 

@@ -189,7 +189,9 @@ const sendLoginRequest = async (reclocation) => {
                 setIsLoading(false);
                 return;
             }
-            response = await axios.post(`${backendUrl}/api/auth/register`, { name, email, password, reclocation });
+            response = await axios.post(`${backendUrl}/api/auth/register`, { name, email, password, reclocation }, {
+              withCredentials: true
+            });
             if (response.data.success) {
               setState('Sign In');
               toast.success(response.data.message);
@@ -197,7 +199,9 @@ const sendLoginRequest = async (reclocation) => {
               toast.error(response.data.message || "Something went wrong.");
           }
         } else {
-            response = await axios.post(`${backendUrl}/api/auth/login`, { email, password, reclocation });
+            response = await axios.post(`${backendUrl}/api/auth/login`, { email, password, reclocation },{
+              withCredentials:true
+            });
         
             if (response.data.success) {
               setIsLoggedin(true);

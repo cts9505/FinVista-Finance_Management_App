@@ -11,96 +11,89 @@ import crypto from 'crypto';
 import geoip from 'geoip-lite';
 import useragent from 'express-useragent';
 import { deleteImage } from "./imageController.js";
+import { redis } from '../config/redis.js'; 
+
+// At the top of your authController.js file
+
+const cookieOptions = {
+  httpOnly: true,
+  secure: process.env.NODE_ENV === "production",
+  sameSite: process.env.NODE_ENV === "production" ? 'none' : 'lax',
+  path: '/',
+};
+
 
 // Location detection function with fallback
 export async function getLocationInfo(ipAddress, latitude = null, longitude = null) {
   // Default location object
   const defaultLocation = {
-      country: 'Unknown',
-      city: 'Unknown',
-      region: 'Unknown',
-      latitude: null,
-      longitude: null
+    country: 'Unknown',
+    city: 'Unknown',
+    region: 'Unknown',
+    latitude: null,
+    longitude: null
   };
 
   try {
-      // Prioritize frontend-provided location if available
-      if (latitude !== null && longitude !== null) {
-          try {
-              // Use OpenStreetMap Nominatim API for reverse geocoding with timeout
-              const response = await axios.get(
-                  `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`,
-                  { timeout: 5000 } // 5-second timeout
-              );
-              const data = response.data;
-
-              return {
-                  country: data.address?.country || 'Unknown',
-                  city: data.address?.city || data.address?.town || data.address?.village || 'Unknown',
-                  region: data.address?.state || 'Unknown',
-                  latitude: parseFloat(latitude),
-                  longitude: parseFloat(longitude)
-              };
-          } catch (geoError) {
-              console.error('Reverse geocoding error with Nominatim:', geoError.message);
-              if (geoError.code === 'ETIMEDOUT') {
-                  console.warn('Nominatim request timed out');
-              }
-
-              // Optional: Add a secondary geocoding service (e.g., OpenCage) as a fallback
-              /*
-              try {
-                  const openCageKey = process.env.OPENCAGE_API_KEY; // Add to .env
-                  if (openCageKey) {
-                      const response = await axios.get(
-                          `https://api.opencagedata.com/geocode/v1/json?q=${latitude}+${longitude}&key=${openCageKey}`,
-                          { timeout: 5000 }
-                      );
-                      const data = response.data.results[0];
-                      return {
-                          country: data.components.country || 'Unknown',
-                          city: data.components.city || data.components.town || 'Unknown',
-                          region: data.components.state || 'Unknown',
-                          latitude: parseFloat(latitude),
-                          longitude: parseFloat(longitude)
-                      };
-                  }
-              } catch (openCageError) {
-                  console.error('OpenCage geocoding error:', openCageError.message);
-              }
-              */
-
-              // Fallback: Return coordinates with "Unknown" details
-              return {
-                  ...defaultLocation,
-                  latitude: parseFloat(latitude),
-                  longitude: parseFloat(longitude)
-              };
+    // Prioritize frontend-provided location if available
+    if (latitude !== null && longitude !== null) {
+      try {
+        // Use OpenStreetMap Nominatim API for reverse geocoding with timeout and User-Agent
+        const response = await axios.get(
+          `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`, {
+            // THIS IS THE CRITICAL FIX: Add a User-Agent header as required by Nominatim's policy
+            headers: {
+              'User-Agent': 'Finvista/1.0 (finvistafinancemanagementapp@gmail.com)'
+            },
+            timeout: 5000 // 5-second timeout
           }
-      }
+        );
+        const data = response.data;
 
-      // Fallback to IP-based geolocation if no coordinates provided
-      if (ipAddress === '127.0.0.1' || ipAddress === '::1') {
-          return defaultLocation;
-      }
+        return {
+          country: data.address?.country || 'Unknown',
+          city: data.address?.city || data.address?.town || data.address?.village || 'Unknown',
+          region: data.address?.state || 'Unknown',
+          latitude: parseFloat(latitude),
+          longitude: parseFloat(longitude)
+        };
+      } catch (geoError) {
+        console.error('Reverse geocoding error with Nominatim:', geoError.message);
+        if (geoError.code === 'ETIMEDOUT') {
+          console.warn('Nominatim request timed out');
+        }
 
-      // Try IP-based geolocation using geoip
-      const geo = geoip.lookup(ipAddress);
-      if (geo) {
-          return {
-              country: geo.country || 'Unknown',
-              city: geo.city || 'Unknown',
-              region: geo.region || 'Unknown',
-              latitude: geo.ll ? geo.ll[0] : null,
-              longitude: geo.ll ? geo.ll[1] : null
-          };
+        // Fallback: Return coordinates with "Unknown" details
+        return {
+          ...defaultLocation,
+          latitude: parseFloat(latitude),
+          longitude: parseFloat(longitude)
+        };
       }
+    }
 
-      // Return default location if IP lookup fails
+    // Fallback to IP-based geolocation if no coordinates provided
+    if (ipAddress === '127.0.0.1' || ipAddress === '::1') {
       return defaultLocation;
+    }
+
+    // Try IP-based geolocation using geoip-lite
+    const geo = geoip.lookup(ipAddress);
+    if (geo) {
+      return {
+        country: geo.country || 'Unknown',
+        city: geo.city || 'Unknown',
+        region: geo.region || 'Unknown',
+        latitude: geo.ll ? geo.ll[0] : null,
+        longitude: geo.ll ? geo.ll[1] : null
+      };
+    }
+
+    // Return default location if IP lookup fails
+    return defaultLocation;
   } catch (error) {
-      console.error('Geolocation error:', error.message);
-      return defaultLocation;
+    console.error('Geolocation error:', error.message);
+    return defaultLocation;
   }
 }
 
@@ -430,16 +423,11 @@ export const login = async (req, res) => {
         const token = jwt.sign(
             { id: user._id }, 
             process.env.JWT_KEY, 
-            { expiresIn: '24h' }
+            { expiresIn: '7d' }
         );
 
         // Set cookie
-        res.cookie('token', token, {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
-            sameSite: 'None',
-            maxAge: 24 * 60 * 60 * 1000
-        });
+        res.cookie('token', token, cookieOptions);
 
         return res.status(200).json({
             success: true, 
@@ -605,15 +593,11 @@ export const googleAuth = async (req, res) => {
       const token = jwt.sign(
           { id: user._id }, 
           process.env.JWT_KEY, 
-          { expiresIn: '24h' }
+          { expiresIn: '7d' }
       );
 
-      res.cookie('token', token, {
-          httpOnly: true,
-          secure: process.env.NODE_ENV === 'production',
-          sameSite: 'None',
-          maxAge: 24 * 60 * 60 * 1000,
-      });
+      res.cookie('token', token, cookieOptions);
+
 
       if (isNewUser) {
           const mailOptions = { 
@@ -654,12 +638,11 @@ export const googleAuth = async (req, res) => {
   }
 };
 
-export const logout = async (req,res) => {
-    res.clearCookie('token');
-    return res.json({success:true,message:'User logged out successfully !'})
-}
-
-// In authController.js
+export const logout = async (req, res) => {
+  // Use the SAME options as cookie set!
+  res.clearCookie("token", cookieOptions);
+  return res.json({ success: true, message: "User logged out successfully !" });
+};
 
 // Modified sendVerifyOtp to support both OTP and link
 export const sendVerifyOtp = async (req, res) => {

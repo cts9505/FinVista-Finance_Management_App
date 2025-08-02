@@ -39,6 +39,7 @@ import AdminReviewPage from './pages/ReviewPageAdmin'
 import Features from './pages/FeaturesPage'
 import Sitemap from './pages/Sitepage'
 import VerifyEmail from './pages/EmailVerify'
+import PricingPage from './pages/PricingPage'
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -81,6 +82,7 @@ function App() {
           <Route path="/all-contact-us" element={<AdminContactDashboard />} />
           <Route path="/all-reviews" element={<AdminReviewPage />} />
         </Route>
+        <Route path="/pricing" element={<PricingPage />} />
         <Route path="/bug-report" element={<ReportBugPage />} />
         <Route path="/contact-us" element={<ContactUsPage />} />
         <Route path="/terms-and-condition" element={<TermsAndConditionsPage />} />

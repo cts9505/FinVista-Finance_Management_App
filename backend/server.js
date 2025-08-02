@@ -11,7 +11,7 @@ import { startCronJobs } from "./sender/cronJobs.js";
 import packageJson from './package.json' with { type: 'json' };
 
 const app = express();
-const allowedOrigins = ['https://finvista-finance-management-app.vercel.app', 'https://finvista-app.vercel.app', 'https://finvista-finance-app.vercel.app', 'http://localhost:5173', 'http://192.168.0.109:5173'];
+const allowedOrigins = [process.env.FRONTEND_URL,'http://localhost:5173'];
 
 app.use(cors({
     origin: function (origin, callback) {

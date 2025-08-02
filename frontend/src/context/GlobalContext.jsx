@@ -2,6 +2,7 @@ import { createContext, useContext, useState, useEffect, useMemo, useCallback } 
 import axios from "axios";
 import { toast } from "react-toastify";
 import { CheckCircle2, Mail, ShieldCheck, Key } from 'lucide-react'
+import { AppContent } from "./AppContext";
 const BASE_URL = import.meta.env.VITE_BACKEND_URL;
 
 export const GlobalContext = createContext();  // ✅ Named export
@@ -380,15 +381,22 @@ const contextValue = useMemo(() => ({
                 checkPremiumStatus,
 }), [userData, budgets, expenses, incomes, bills, addBudget, getBudgets, updateBudget, deleteBudget, getExpenses, getIncomes]); // Add ALL functions and state to the dependency array
 
-useEffect(() => {
-    getUserData();
-    getIncomes();
-    getExpenses();
-    getBudgets();
-    getBills();
-    checkPremiumStatus();
-}, [getBudgets, getExpenses, getIncomes, getBills]); // Use stable functions as dependencies
+// In GlobalContext.jsx
 
+// Assuming you get login state from another context, e.g., AppContext
+const { isLoggedin } = useContext(AppContent); 
+
+useEffect(() => {
+    // Only run these functions if the user is logged in
+    if (isLoggedin) {
+        getUserData();
+        getIncomes();
+        getExpenses();
+        getBudgets();
+        getBills();
+        checkPremiumStatus();
+    }
+}, [isLoggedin, getBudgets, getExpenses, getIncomes, getBills]); // Add isLoggedin to dependency array
     return (
         <GlobalContext.Provider value={contextValue}>
             {children}

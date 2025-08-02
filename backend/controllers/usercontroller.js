@@ -20,6 +20,7 @@ export const getUserData = async (req, res) => {
         phone: user.phone,
         age: user.age,
         image: user.image,
+        loginStreak: user.loginStreak,
         isAdmin: user.isAdmin,
         isAccountVerified: user.isAccountVerified,
         isPremium: user.isPremium,

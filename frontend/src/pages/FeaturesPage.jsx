@@ -1,11 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { 
   LineChart, BarChart, Shield, Wallet, PieChart, Calendar, FileText, Lock, CreditCard, 
   Brain, UserCheck, BellRing, Upload, ChevronRight, Check, ArrowRight, ChevronLeft, ChevronDown, Bell
 } from 'lucide-react';
 import { AnimatePresence, motion } from 'framer-motion';
 import Navbar from '../components/Navbar';
+import FooterContainer from '../components/Footer';
 
 // Mock images - in a real implementation, these would be imported properly
 const dashboardImg = "https://placehold.co/600x400?text=Dashboard";
@@ -1082,14 +1083,18 @@ const Features = () => {
                 whileTap={{ scale: 0.98 }}
                 className="px-8 py-3 bg-white text-blue-600 rounded-full hover:bg-blue-50 transition shadow-lg font-medium"
               >
+                <Link to="/login">
                 Sign Up Free
+                </Link>
               </motion.button>
               <motion.button
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.98 }}
                 className="px-8 py-3 bg-blue-700 text-white rounded-full hover:bg-blue-800 transition shadow-lg border border-blue-400 font-medium"
               >
+                <Link to="/login">
                 Schedule a Demo
+                </Link>
               </motion.button>
             </div>
           </motion.div>
@@ -1097,53 +1102,7 @@ const Features = () => {
       </section>
 
       {/* Footer */}
-      <footer className="bg-gray-900 text-white py-12 px-4 sm:px-6 lg:px-8">
-        <div className="container mx-auto">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8 md:gap-12">
-            <div>
-              <div className="text-2xl font-bold mb-4">FinVista</div>
-              <p className="text-gray-400 mb-6">Making financial management simple, secure, and intelligent.</p>
-              <div className="flex space-x-4">
-                {/* Social icons would go here */}
-              </div>
-            </div>
-            
-            <div>
-              <h3 className="text-lg font-semibold mb-4">Product</h3>
-              <ul className="space-y-2">
-                <li><a href="#features" className="text-gray-400 hover:text-white transition">Features</a></li>
-                <li><a href="#security" className="text-gray-400 hover:text-white transition">Security</a></li>
-                <li><a href="#pricing" className="text-gray-400 hover:text-white transition">Pricing</a></li>
-                <li><a href="#" className="text-gray-400 hover:text-white transition">API</a></li>
-              </ul>
-            </div>
-            
-            <div>
-              <h3 className="text-lg font-semibold mb-4">Resources</h3>
-              <ul className="space-y-2">
-                <li><a href="#" className="text-gray-400 hover:text-white transition">Documentation</a></li>
-                <li><a href="#" className="text-gray-400 hover:text-white transition">Blog</a></li>
-                <li><a href="#" className="text-gray-400 hover:text-white transition">Support</a></li>
-                <li><a href="#" className="text-gray-400 hover:text-white transition">Community</a></li>
-              </ul>
-            </div>
-            
-            <div>
-              <h3 className="text-lg font-semibold mb-4">Company</h3>
-              <ul className="space-y-2">
-                <li><a href="#" className="text-gray-400 hover:text-white transition">About Us</a></li>
-                <li><a href="#" className="text-gray-400 hover:text-white transition">Careers</a></li>
-                <li><a href="#" className="text-gray-400 hover:text-white transition">Privacy Policy</a></li>
-                <li><a href="#" className="text-gray-400 hover:text-white transition">Terms of Service</a></li>
-              </ul>
-            </div>
-          </div>
-          
-          <div className="mt-12 pt-8 border-t border-gray-800 text-center text-gray-400">
-            <p>© {new Date().getFullYear()} FinVista. All rights reserved.</p>
-          </div>
-        </div>
-      </footer>
+      <FooterContainer/>
     </div>
   );
 };
