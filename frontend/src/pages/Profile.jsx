@@ -34,6 +34,8 @@ import 'jspdf-autotable';
 import { GlobalContext, useGlobalContext } from '../context/GlobalContext';
 import { motion, AnimatePresence } from "framer-motion";
 import { FaStar, FaStarOfLife } from 'react-icons/fa';
+import PasswordModal from '../components/PasswordModal'; // Adjust path if needed
+
 // Base URL for API calls - replace with your actual base URL
 const BASE_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000';
 
@@ -307,7 +309,7 @@ const ProfilePage = () => {
   const [editingSection, setEditingSection] = useState(null);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(true);
   const [isTwoFactorEnabled, setIsTwoFactorEnabled] = useState(false);
-  const [showChangePasswordModal, setShowChangePasswordModal] = useState(false);
+  const [passwordModal, setPasswordModal] = useState({ isOpen: false, mode: 'change' });
   const { setIsLoggedin, backendUrl } = useContext(AppContent);
   const { addExpense } = useGlobalContext();
   const [newItem, setNewItem] = useState('');
@@ -590,7 +592,14 @@ const fetchUserData = async () => {
                   { withCredentials: true }
               );
               if (response.data.success) {
-                  setUserData(response.data.userData);
+                const fetchedData = response.data.userData;
+    
+                const updatedUserData = {
+                  ...fetchedData,
+                  hasPassword: !!fetchedData.hasPassword, 
+                };
+
+                setUserData(updatedUserData);
                   setFormData({
                       onboardingData: {
                           employmentStatus: response.data.userData.onboardingData.employmentStatus || "",
@@ -1524,18 +1533,25 @@ const fetchUserData = async () => {
                   <div className="flex items-center">
                     <Settings className="text-gray-500 mr-3" size={18} />
                     <div>
-                      <p className="text-gray-800">Change Password</p>
+                      <p className="text-gray-800">{userData.hasPassword ? 'Change Password' : 'Create Password'}</p>
                       <p className="text-sm text-gray-500">
                         Last changed: {formatDistanceToNow(new Date(userData?.lastPasswordChange || Date.now()), { addSuffix: true })}
                       </p>
                     </div>
                   </div>
-                  <button 
-                    onClick={() => setShowChangePasswordModal(true)} 
+                  <button
+                    onClick={() => {
+                        setPasswordModal({
+                            isOpen: true,
+                            // Conditionally set the mode based on whether the user has a password
+                            mode: userData.hasPassword ? 'change' : 'set',
+                        });
+                    }}
                     className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-                  >
-                    Change
-                  </button>
+                >
+                    {/* UPDATED: Change button text for clarity */}
+                    {userData.hasPassword ? 'Change' : 'Create Password'}
+                </button>
                 </div>
             
               {/* <button className="flex items-center text-red-500 hover:text-red-700" onClick={() => handleProfileAction("logout")}>
@@ -1558,18 +1574,16 @@ const fetchUserData = async () => {
             </div>
           </div>
         </div>
-        {/* Modal or overlay for Change Password Form */}
-        {showChangePasswordModal && (
-          <div className="fixed inset-0 backdrop-blur-sm bg-opacity-50 flex items-center justify-center z-50">
-            <div className="w-full max-w-md">
-              <ChangePasswordForm 
-                onClose={() => setShowChangePasswordModal(false)}
-              />
-            </div>
-          </div>
+        {passwordModal.isOpen && (
+            <PasswordModal
+                mode={passwordModal.mode}
+                onClose={() => setPasswordModal({ isOpen: false, mode: 'change' })}
+                onSuccess={() => {
+                    fetchUserData(); 
+                }}
+            />
         )}
       </div>
-      
     );
   }
   else if (activeTab === "finance") {
@@ -2448,28 +2462,99 @@ const fetchUserData = async () => {
                   <div className="flex items-center">
                     <Settings className="text-gray-500 mr-3" size={18} />
                     <div>
-                      <p className="text-gray-800">Change Password</p>
+                      <p className="text-gray-800">{userData.hasPassword ? 'Change Password' : 'Create Password'}</p>
                       <p className="text-sm text-gray-500">
                         Last changed: {formatDistanceToNow(new Date(userData?.lastPasswordChange || Date.now()), { addSuffix: true })}
                       </p>
                     </div>
                   </div>
-                  <button 
-                    onClick={() => setShowChangePasswordModal(true)} 
-                    className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-                  >
-                    Change
-                  </button>
+                  <button
+        // UPDATED onClick handler
+        onClick={() => {
+            setPasswordModal({
+                isOpen: true,
+                // Conditionally set the mode based on whether the user has a password
+                mode: userData.hasPassword ? 'change' : 'set',
+            });
+        }}
+        className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+    >
+        {/* UPDATED: Change button text for clarity */}
+        {userData.hasPassword ? 'Change' : 'Create Password'}
+    </button>
                 </div>
-                {showChangePasswordModal && (
-                  <div className="fixed inset-0 backdrop-blur-sm bg-opacity-50 flex items-center justify-center z-50">
-                    <div className="w-full max-w-md">
-                      <ChangePasswordForm 
-                        onClose={() => setShowChangePasswordModal(false)}
-                      />
+{showSecondConfirmModal && (
+    <div className="fixed inset-0 backdrop-blur-xl bg-opacity-50 flex items-center justify-center z-50">
+        <div className="bg-white rounded-lg p-6 w-full max-w-md">
+            {/* CONDITIONAL RENDER START */}
+            {userData.hasPassword ? (
+                // --- A) USER HAS A PASSWORD (Original Flow) ---
+                <>
+                    <p className="mb-4">
+                        To confirm this action, please enter your password and type "{confirmationType === 'account' ? 'DELETE' : confirmationType}".
+                    </p>
+                    {/* Password Input */}
+                    <div className="mb-4">
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Your Password</label>
+                        <input
+                            type="password"
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                            className="w-full p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                            placeholder="Enter your password"
+                        />
                     </div>
-                  </div>
-                )}
+                    {/* Confirmation Text Input */}
+                    <div className="mb-6">
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                            Type "{confirmationType === 'account' ? 'DELETE' : confirmationType}" to confirm
+                        </label>
+                        <input
+                            type="text"
+                            value={confirmText}
+                            onChange={(e) => setConfirmText(e.target.value)}
+                            className="w-full p-2 border border-gray-300 rounded-md"
+                            placeholder={`Type "${confirmationType === 'account' ? 'DELETE' : confirmationType}"`}
+                        />
+                    </div>
+                     {/* Action Buttons */}
+                    <div className="flex justify-end space-x-3">
+                        <button onClick={() => setShowSecondConfirmModal(false)} className="px-4 py-2 border rounded-md">Cancel</button>
+                        <button
+                            onClick={handleSecondConfirmation}
+                            // Original disabled logic
+                            disabled={!password || (confirmText.toUpperCase() !== (confirmationType === 'account' ? 'DELETE' : confirmationType.toUpperCase()))}
+                            className="px-4 py-2 bg-red-600 text-white rounded-md disabled:opacity-50"
+                        >
+                            Confirm Deletion
+                        </button>
+                    </div>
+                </>
+            ) : (
+                // --- B) USER DOES NOT HAVE A PASSWORD (New "Set & Proceed" Flow) ---
+                <PasswordModal
+                    mode="set"
+                    onClose={() => setShowSecondConfirmModal(false)}
+                    onSuccess={(newlySetPassword) => {
+                        // This is the magic! On success, we get the new password
+                        // and immediately call the original delete function with it.
+                        toast.info('Password created. Now proceeding with deletion...');
+                        
+                        // Temporarily set the password in state to be used by the original function
+                        setPassword(newlySetPassword);
+
+                        // We need to use a useEffect or a callback to ensure state is set before calling the delete function
+                        // A simple timeout works well here to allow React to update the state.
+                        setTimeout(() => {
+                           handleSecondConfirmation();
+                        }, 100);
+                    }}
+                />
+            )}
+            {/* CONDITIONAL RENDER END */}
+        </div>
+    </div>
+)}
               </div>
               
               {/* Notifications */}
@@ -2698,107 +2783,80 @@ const fetchUserData = async () => {
         )}
         
         {/* Second confirmation modal with text input */}
-        {showSecondConfirmModal && (
-          <div className="fixed inset-0 backdrop-blur-xl bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-white rounded-lg p-6 w-full max-w-md">
-              <h3 className="text-lg font-bold mb-4">Final Confirmation Required</h3>
-              
-              {confirmationType === 'account' ? (
-                <>
-                  <p className="mb-4">
-                    To delete your account, please type your password and the word "DELETE" below:
-                  </p>
-                  <div className="mb-4">
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Your Password
-                    </label>
-                    <input 
-                      type="password" 
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      className="w-full p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500" 
-                      placeholder="Enter your password"
-                    />
+          {showSecondConfirmModal && (
+              <div className="fixed inset-0 backdrop-blur-xl bg-opacity-50 flex items-center justify-center z-50">
+                  <div className="bg-white rounded-lg p-6 w-full max-w-md">
+                      <h3 className="text-lg font-bold mb-4">Final Confirmation Required</h3>
+                      
+                      {/* CONDITIONAL RENDER START */}
+                      {userData.hasPassword ? (
+                          // --- A) USER HAS A PASSWORD (Original Flow) ---
+                          <>
+                              <p className="mb-4">
+                                  To confirm this action, please enter your password and type "{confirmationType === 'account' ? 'DELETE' : confirmationType}".
+                              </p>
+                              {/* Password Input */}
+                              <div className="mb-4">
+                                  <label className="block text-sm font-medium text-gray-700 mb-1">Your Password</label>
+                                  <input
+                                      type="password"
+                                      value={password}
+                                      onChange={(e) => setPassword(e.target.value)}
+                                      className="w-full p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                                      placeholder="Enter your password"
+                                  />
+                              </div>
+                              {/* Confirmation Text Input */}
+                              <div className="mb-6">
+                                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                                      Type "{confirmationType === 'account' ? 'DELETE' : confirmationType}" to confirm
+                                  </label>
+                                  <input
+                                      type="text"
+                                      value={confirmText}
+                                      onChange={(e) => setConfirmText(e.target.value)}
+                                      className="w-full p-2 border border-gray-300 rounded-md"
+                                      placeholder={`Type "${confirmationType === 'account' ? 'DELETE' : confirmationType}"`}
+                                  />
+                              </div>
+                              {/* Action Buttons */}
+                              <div className="flex justify-end space-x-3">
+                                  <button onClick={() => setShowSecondConfirmModal(false)} className="px-4 py-2 border rounded-md">Cancel</button>
+                                  <button
+                                      onClick={handleSecondConfirmation}
+                                      // Original disabled logic
+                                      disabled={!password || (confirmText.toUpperCase() !== (confirmationType === 'account' ? 'DELETE' : confirmationType.toUpperCase()))}
+                                      className="px-4 py-2 bg-red-600 text-white rounded-md disabled:opacity-50"
+                                  >
+                                      Confirm Deletion
+                                  </button>
+                              </div>
+                          </>
+                      ) : (
+                          // --- B) USER DOES NOT HAVE A PASSWORD (New "Set & Proceed" Flow) ---
+                          <PasswordModal
+                              mode="set"
+                              onClose={() => setShowSecondConfirmModal(false)}
+                              onSuccess={(newlySetPassword) => {
+                                  // This is the magic! On success, we get the new password
+                                  // and immediately call the original delete function with it.
+                                  toast.info('Password created. Now proceeding with deletion...');
+                                  
+                                  // Temporarily set the password in state to be used by the original function
+                                  setPassword(newlySetPassword);
+
+                                  // We need to use a useEffect or a callback to ensure state is set before calling the delete function
+                                  // A simple timeout works well here to allow React to update the state.
+                                  setTimeout(() => {
+                                    handleSecondConfirmation();
+                                  }, 100);
+                              }}
+                          />
+                      )}
+                      {/* CONDITIONAL RENDER END */}
                   </div>
-                  <div className="mb-6">
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Type "DELETE" to confirm
-                    </label>
-                    <input 
-                      type="text" 
-                      value={confirmText}
-                      onChange={(e) => setConfirmText(e.target.value)}
-                      className="w-full p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500" 
-                      placeholder='Type "DELETE"'
-                    />
-                  </div>
-                </>
-              ) : (
-                <>
-                  <p className="mb-4">
-                  To delete your all {confirmationType}, please type your password and the word "{confirmationType}" below:
-                  </p>
-                  <div className="mb-4">
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Your Password
-                    </label>
-                    <input 
-                      type="password" 
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      className="w-full p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500" 
-                      placeholder="Enter your password"
-                    />
-                  </div>
-                  <div className="mb-6">
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Type "{confirmationType}" to confirm
-                    </label>
-                    <input 
-                      type="text" 
-                      value={confirmText}
-                      onChange={(e) => setConfirmText(e.target.value)}
-                      className="w-full p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500" 
-                      placeholder={`Type "${confirmationType}"`}
-                    />
-                  </div>
-                </>
-              )}
-              
-              <div className="flex justify-end space-x-3">
-                <button 
-                  onClick={() => {
-                    setShowSecondConfirmModal(false);
-                    setConfirmText('');
-                    setPassword('');
-                  }}
-                  className="px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50"
-                >
-                  Cancel
-                </button>
-                <button 
-                  onClick={handleSecondConfirmation}
-                  disabled={
-                    (confirmationType === 'account' && 
-                    (confirmText !== 'DELETE' || password === '')) || 
-                    (confirmationType !== 'account' && 
-                    confirmText !== confirmationType)
-                  }
-                  className={`px-4 py-2 bg-red-600 text-white rounded-md ${
-                    ((confirmationType === 'account' && 
-                      (confirmText !== 'DELETE' || password === '')) || 
-                      (confirmationType !== 'account' && 
-                      confirmText !== confirmationType)) 
-                    ? 'opacity-50 cursor-not-allowed' 
-                    : 'hover:bg-red-700'
-                  }`}
-                >
-                  Confirm Deletion
-                </button>
               </div>
-            </div>
-          </div>
-        )}
+          )}
         
         {/* Success notification */}
         {showSuccessNotification && (

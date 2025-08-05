@@ -11,7 +11,10 @@ import { startCronJobs } from "./sender/cronJobs.js";
 import packageJson from './package.json' with { type: 'json' };
 
 const app = express();
-const allowedOrigins = [process.env.FRONTEND_URL,'http://localhost:5173'];
+
+const frontendUrls = process.env.FRONTEND_URLS;
+
+const allowedOrigins = frontendUrls ? frontendUrls.split(',').map(url => url.trim()) : [];
 
 app.use(cors({
     origin: function (origin, callback) {
@@ -61,7 +64,8 @@ app.get("/health", (req, res) => {
 
     res.status(200).json(healthCheckResponse);
 });
-// ------------------------------------
+
+app.get('/ping', (req, res) => res.send('pong'));
 
 app.use("/api/auth", router);
 app.use("/api/user", userRouter);

@@ -17,11 +17,12 @@ const chatSchema = new mongoose.Schema({
         required: true },
       role: { 
         type: String, 
-        enum: ['user', 'assistant'], 
+        enum: ['user', 'assistant','daily_insight'], 
         required: true },
-      timestamp: { 
-        type: Date, 
-        default: Date.now },
+        timestamp: { 
+          type: Date, 
+          default: Date.now 
+        },
     },
   ],
   createdAt: { 

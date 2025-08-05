@@ -8,7 +8,6 @@ const Home = () => {
     <div className='flex flex-col items-center justify-center min-h-screen shadow-md bg-gradient-to-b from-gray-50 to bg-gray-100'>
       <Navbar/>
       <LandingPage/>
-      
     </div>
     <FooterContainer/>
     </>

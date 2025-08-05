@@ -41,39 +41,10 @@ const getLocalDateString = (date) => {
     return `${year}-${month}-${day}`;
 };
 
-function calculateDateRange(period, year, month) {
-    if (typeof year !== "number" || typeof month !== "number") {
-        const fallback = new Date();
-        return {
-            startDate: fallback.toISOString().split("T")[0],
-            endDate: new Date(fallback.getFullYear(), fallback.getMonth() + 1, 0).toISOString().split("T")[0],
-        };
-    }
-
-    let startDate, endDate;
-    switch (period) {
-        case "quarterly":
-            startDate = new Date(year, month, 1);
-            endDate = new Date(year, month + 3, 0);
-            break;
-        case "biannual":
-            startDate = new Date(year, month, 1);
-            endDate = new Date(year, month + 6, 0);
-            break;
-        case "annual":
-            startDate = new Date(year, 0, 1);
-            endDate = new Date(year, 12, 0);
-            break;
-        case "monthly":
-        default:
-            startDate = new Date(year, month, 1);
-            endDate = new Date(year, month + 1, 0);
-    }
-    return {
-        startDate: startDate.toISOString().split("T")[0],
-        endDate: endDate.toISOString().split("T")[0],
-    };
-}
+function calculateDateRange(period, year, month) { 
+    // This fallback logic can also be improved to use getLocalDateString 
+    if (typeof year !== "number" || typeof month !== "number") { const fallback = new Date(); const startOfMonth = new Date(fallback.getFullYear(), fallback.getMonth(), 1); const endOfMonth = new Date(fallback.getFullYear(), fallback.getMonth() + 1, 0); return { startDate: getLocalDateString(startOfMonth), endDate: getLocalDateString(endOfMonth), }; } let startDate, endDate; switch (period) { case "quarterly": startDate = new Date(year, month, 1); endDate = new Date(year, month + 3, 0); break; case "biannual": startDate = new Date(year, month, 1); endDate = new Date(year, month + 6, 0); break; case "annual": startDate = new Date(year, 0, 1); endDate = new Date(year, 12, 0); break; case "monthly": default: startDate = new Date(year, month, 1); endDate = new Date(year, month + 1, 0); } 
+ return { startDate: getLocalDateString(startDate), endDate: getLocalDateString(endDate), }; } // ... rest of the component
 
 export const BudgetPage = () => {
     const {
@@ -434,61 +405,38 @@ export const BudgetPage = () => {
     }
 
     const handleChange = (e) => {
-        const { name, value, type, checked } = e.target;
-        if (name === "period") {
-            handlePeriodChange(value);
-        }
-        if (period === "custom" && (name === "startDate" || name === "endDate")) {
-            setInputState(prev => ({
-                ...prev,
-                [name]: value
-            }));
-            return;
-        }
-        if (name === "startDate" && period === "custom") {
-            const newStartDate = new Date(value);
-            const currentEndDate = new Date(endDate);
-            if (currentEndDate <= newStartDate) {
-                const newEndDate = new Date(newStartDate);
-                newEndDate.setDate(newEndDate.getDate() + 30);
-                setInputState((prev) => ({
-                    ...prev,
-                    endDate: newEndDate.toISOString().split("T")[0],
-                }));
-            }
-        } else if (type === "checkbox") {
-            setInputState((prev) => ({ ...prev, [name]: checked }));
+    const { name, value, type, checked } = e.target;
+    
+    // This part remains the same
+    if (name === "period") {
+        handlePeriodChange(value);
+        return; // handlePeriodChange already updates state, so we exit here
+    }
+
+    setInputState((prev) => {
+        const newState = { ...prev };
+
+        if (type === "checkbox") {
+            newState[name] = checked;
         } else {
-            setInputState((prev) => ({ ...prev, [name]: value }));
-            if (name === "period" && value !== "custom") {
-                const { startDate: newStartDate, endDate: newEndDate } = calculateDateRange(value, startDate);
-                setInputState((prev) => ({
-                    ...prev,
-                    startDate: newStartDate,
-                    endDate: newEndDate,
-                    isCustomDate: false,
-                }));
-            }
-            if (name === "period" && value === "custom") {
-                setInputState((prev) => ({
-                    ...prev,
-                    isCustomDate: true,
-                }));
-            }
-            if (name === "startDate") {
-                const newStartDate = new Date(value);
-                const currentEndDate = new Date(endDate);
-                if (newStartDate >= currentEndDate) {
-                    const newEndDate = new Date(newStartDate);
-                    newEndDate.setDate(newEndDate.getDate() + 1);
-                    setInputState((prev) => ({
-                        ...prev,
-                        endDate: newEndDate.toISOString().split("T")[0],
-                    }));
-                }
+            newState[name] = value;
+        }
+
+        // FIX APPLIED HERE: When changing dates, use getLocalDateString
+        if (name === "startDate" && newState.isCustomDate) {
+            const newStartDate = new Date(value + 'T00:00:00'); // Ensure local parsing
+            const currentEndDate = new Date(newState.endDate + 'T00:00:00');
+            
+            if (newStartDate >= currentEndDate) {
+                const newEndDate = new Date(newStartDate);
+                newEndDate.setDate(newEndDate.getDate() + 1);
+                newState.endDate = getLocalDateString(newEndDate); // Use helper
             }
         }
-    };
+        
+        return newState;
+    });
+};
 
     const handleEmojiSelect = (selectedEmoji) => {
         setInputState((prev) => ({ ...prev, emoji: selectedEmoji }));
@@ -496,21 +444,25 @@ export const BudgetPage = () => {
     };
 
     const resetForm = () => {
-        setInputState({
-            title: "",
-            amount: "",
-            category: "",
-            emoji: "💰",
-            period: "monthly",
-            autoRenew: true,
-            startDate: new Date(selectedYear, selectedMonth, 1).toISOString().split("T")[0],
-            endDate: new Date(selectedYear, selectedMonth + 1, 0).toISOString().split("T")[0],
-            isCustomDate: false,
-        });
-        setIsEditMode(false);
-        setCurrentEditBudget(null);
-        setValidationErrors({});
-    };
+    // Get the correct date range for the currently selected month and year
+    const range = getMonthDateRange(selectedYear, selectedMonth);
+
+    // FIX APPLIED HERE: Use the pre-formatted dates from the helper
+    setInputState({
+        title: "",
+        amount: "",
+        category: "",
+        emoji: "💰",
+        period: "monthly",
+        autoRenew: true,
+        startDate: range.startDate,
+        endDate: range.endDate,
+        isCustomDate: false,
+    });
+    setIsEditMode(false);
+    setCurrentEditBudget(null);
+    setValidationErrors({});
+};
 
     const closeForm = () => {
         setIsFormOpen(false);
@@ -548,8 +500,8 @@ export const BudgetPage = () => {
             emoji,
             period,
             autoRenew,
-            startDate: start.toISOString().split('T')[0],
-            endDate: end.toISOString().split('T')[0],
+            startDate: inputState.startDate, // Use the string from state
+            endDate: inputState.endDate,     // Use the string from state
             year: selectedYear,
             month: selectedMonth
         };

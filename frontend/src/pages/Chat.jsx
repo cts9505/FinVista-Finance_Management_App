@@ -285,7 +285,11 @@ const ChatPage = () => {
       if (error.response?.status === 403) {
         toast.error("You've reached your daily chat limit.");
         setShowPremiumModal(true);
-      } else {
+      } 
+      else if (error.response?.status === 409) {
+        toast.error("Our AI assistant is currently busy. Please try again later.");
+      } 
+      else {
         toast.error("Error communicating with AI assistant");
         setMessages((prev) => [
           ...prev,
@@ -413,7 +417,9 @@ const ChatPage = () => {
                 className="p-4 space-y-4 overflow-y-auto h-full"
                 style={{ scrollBehavior: "smooth" }}
               >
-                {messages.map((message, index) => (
+                {messages
+                .filter(message => message.role !== "daily_insight")
+                .map((message, index) => (
                   <div
                     key={index}
                     className={`flex ${
@@ -522,7 +528,7 @@ const ChatPage = () => {
                     <div className="flex items-center">
                       <Icons.Warning className="h-4 w-4 mr-2 text-yellow-600" />
                       <span>
-                        You've reached your daily chat limit. Upgrade to premium for
+                        You&apos;ve reached your daily chat limit. Upgrade to premium for
                         unlimited chats!
                       </span>
                     </div>

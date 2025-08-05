@@ -7,14 +7,13 @@ import {
 import { AnimatePresence, motion } from 'framer-motion';
 import Navbar from '../components/Navbar';
 import FooterContainer from '../components/Footer';
-
-// Mock images - in a real implementation, these would be imported properly
-const dashboardImg = "https://placehold.co/600x400?text=Dashboard";
-const budgetImg = "https://placehold.co/600x400?text=Budget+Management";
-const securityImg = "https://placehold.co/600x400?text=Security+Features";
-const chartImg = "https://placehold.co/600x400?text=Financial+Tracking";
-const ocrImg = "https://placehold.co/600x400?text=OCR+Scanning";
-const aiImg = "https://placehold.co/600x400?text=AI+Features";
+import dashboardImg from '/dashboard.png';
+import budgetImg from '/budget.png';
+import chartImg from '/expense.png';
+import ocrImg from '/ocr.png';
+import aiImg from '/ai.png';
+import billImg from '/bill.png';
+import home from '/home.png';
 
 const Features = () => {
   const navigate = useNavigate();
@@ -75,7 +74,7 @@ const Features = () => {
       title: 'Bill Tracking & Reminders',
       icon: <Calendar className="text-blue-600" size={24} />,
       description: 'Never miss a payment with our bill tracking system and customizable reminders.',
-      image: dashboardImg,
+      image: billImg,
       benefits: [
         'Calendar view of upcoming bills', 
         'Email and push notifications', 
@@ -379,7 +378,7 @@ const Features = () => {
               <div className="absolute inset-0 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-xl transform rotate-1 blur-sm opacity-20"></div>
               <div className="relative bg-white rounded-xl shadow-2xl overflow-hidden p-2">
                 <img 
-                  src="https://placehold.co/1200x600?text=FinVista+Dashboard" 
+                  src={dashboardImg} // Replace with actual image path
                   alt="FinVista Dashboard"
                   className="w-full h-auto rounded-lg"
                 />

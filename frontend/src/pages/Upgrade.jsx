@@ -314,7 +314,7 @@ const UpgradePage = () => {
           </div>
         )}
         
-        {!isPremiumUser ? (
+        {!isPremiumUser && (
           <div className="flex justify-center mb-9">
             <div className="bg-white rounded-full p-1 shadow-md inline-flex">
               <button 
@@ -331,7 +331,8 @@ const UpgradePage = () => {
               </button>
             </div>
           </div>
-        ) : (
+        ) }
+        {(isTrialUser||isPremium) && (
           <div className="flex justify-center mb-11">
             <div className="bg-white rounded-xl p-1 shadow-md inline-flex">
               <span className={`px-6 py-2 rounded-xl text-sm font-small transition bg-blue-50`}>

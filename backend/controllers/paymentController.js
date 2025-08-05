@@ -201,7 +201,7 @@ export const startFreeTrial = async (req, res) => {
     const trialEndDate = new Date();
     trialEndDate.setDate(trialEndDate.getDate() + 7);
 
-    user.isPremium = true;
+    user.isTrial = true;
     user.subscriptionType = 'trial';
     user.trialEndDate = trialEndDate;
 

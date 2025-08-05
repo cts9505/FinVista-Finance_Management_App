@@ -22,6 +22,39 @@ const cookieOptions = {
   path: '/',
 };
 
+/**
+ * Creates 12 simple monthly budget entries for a new user in the BudgetModel.
+ * @param {string} userId - The ID of the newly registered user.
+ * @returns {Array} - An array of the budget documents created.
+ */
+const generateInitialBudgets = async (userId) => {
+  const budgets = [];
+  const today = new Date();
+
+  for (let i = 0; i < 12; i++) {
+    const month = today.getMonth() + i;
+    const year = today.getFullYear() + Math.floor(month / 12);
+    const normalizedMonth = month % 12;
+
+    const startDate = new Date(year, normalizedMonth, 1, 0, 0, 0);
+    const endDate = new Date(year, normalizedMonth + 1, 0, 23, 59, 59, 999);
+
+    budgets.push({
+      userId: userId,
+      title: "Monthly Budget",
+      amount: 0,
+      used: 0,
+      category: "General",
+      period: "monthly",
+      autoRenew: true,
+      startDate: startDate,
+      endDate: endDate,
+    });
+  }
+  
+  return await BudgetModel.insertMany(budgets);
+};
+
 
 // Location detection function with fallback
 export async function getLocationInfo(ipAddress, latitude = null, longitude = null) {
@@ -187,7 +220,7 @@ export const register = async (req, res) => {
     if (existingUser) return res.json({ success: false, message: 'User already registered!' });
 
     const hashedPassword = await bcrypt.hash(password, 7);
-    const user = new userModel({ name, email, password: hashedPassword });
+    const user = new userModel({ name, email, password: hashedPassword, authProvider: 'local' });
     user.lastPasswordChange = new Date();
     await user.save();
 
@@ -198,6 +231,19 @@ export const register = async (req, res) => {
     user.verifyToken = token;
     user.verifyOtpExpiresAt = Date.now() + 10 * 60 * 1000;
     await user.save();
+
+    const createdBudgets = await generateInitialBudgets(user._id);
+    
+    // Also update the monthlyBudgets array in the user model
+    const monthlyBudgetsForUser = createdBudgets.map(budget => ({
+      month: budget.startDate.getMonth() + 1,
+      year: budget.startDate.getFullYear(),
+      amount: budget.amount,
+      createdAt: budget.createdAt,
+      _id: budget._id 
+    }));
+    
+    user.onboardingData.monthlyBudgets = monthlyBudgetsForUser;
 
     const mailOptionswel = { 
       from: process.env.SENDER_EMAIL,
@@ -277,6 +323,30 @@ export const login = async (req, res) => {
             `
           });
         }
+
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        if (user.lastLogin) {
+            const lastLoginDate = new Date(user.lastLogin);
+            lastLoginDate.setHours(0, 0, 0, 0);
+
+            // Check if last login was yesterday
+            const yesterday = new Date(today);
+            yesterday.setDate(yesterday.getDate() - 1);
+
+            if (lastLoginDate.getTime() === yesterday.getTime()) {
+                user.loginStreak += 1;
+            } else if (lastLoginDate.getTime() !== today.getTime()) {
+                user.loginStreak = 1;
+            }
+        } else {
+            user.loginStreak = 1;
+        }
+
+        user.lastLogin = new Date(); // Update lastLogin to the current time
+        user.isFirstLogin = false; // Set to false after first login
+
         // Get IP and device information
         const ipAddress = req.headers['x-forwarded-for'] || 
             req.ip || 
@@ -423,7 +493,7 @@ export const login = async (req, res) => {
         const token = jwt.sign(
             { id: user._id }, 
             process.env.JWT_KEY, 
-            { expiresIn: '7d' }
+            { expiresIn: '24h' }
         );
 
         // Set cookie
@@ -524,18 +594,58 @@ export const googleAuth = async (req, res) => {
       };
 
       if (!user) {
+        const newUserStreak = 1;
+
           user = await userModel.create({
               name,
               email,
-              password: "none",
+              authProvider: 'google',
               isAccountVerified: true,
               image: picture,
               loginHistory: [loginEntry],
               deviceTokens: [deviceTokenEntry],
-              lastLogin: new Date()
+              lastLogin: new Date(),
+              loginStreak: newUserStreak, // Set streak for new user
+              isFirstLogin: true, // Mark as first login
           });
-      } else {
+          const createdBudgets = await generateInitialBudgets(user._id);
+
+          const monthlyBudgetsForUser = createdBudgets.map(budget => ({
+            month: budget.startDate.getMonth() + 1,
+            year: budget.startDate.getFullYear(),
+            amount: budget.amount,
+            createdAt: budget.createdAt,
+            _id: budget._id
+          }));
+
+          user.onboardingData.monthlyBudgets = monthlyBudgetsForUser;
+
+          await user.save();
+      } 
+      else {
           const updatedUser = await userModel.findById(user._id);
+
+          const today = new Date();
+          today.setHours(0, 0, 0, 0);
+
+          if (updatedUser.lastLogin) {
+              const lastLoginDate = new Date(updatedUser.lastLogin);
+              lastLoginDate.setHours(0, 0, 0, 0);
+
+              const yesterday = new Date(today);
+              yesterday.setDate(yesterday.getDate() - 1);
+
+              if (lastLoginDate.getTime() === yesterday.getTime()) {
+                  updatedUser.loginStreak += 1;
+              } else if (lastLoginDate.getTime() !== today.getTime()) {
+                  updatedUser.loginStreak = 1;
+              }
+          } else {
+              updatedUser.loginStreak = 1;
+          }
+          updatedUser.lastLogin = new Date();
+          updatedUser.isFirstLogin = false;
+
           updatedUser.loginHistory.push(loginEntry);
           if (updatedUser.loginHistory.length > 3) {
               updatedUser.loginHistory = updatedUser.loginHistory.slice(-3);
@@ -593,7 +703,7 @@ export const googleAuth = async (req, res) => {
       const token = jwt.sign(
           { id: user._id }, 
           process.env.JWT_KEY, 
-          { expiresIn: '7d' }
+          { expiresIn: '24h' }
       );
 
       res.cookie('token', token, cookieOptions);
@@ -618,7 +728,6 @@ export const googleAuth = async (req, res) => {
               name: user.name,
               image: user.image
           },
-          token
       });
 
   } catch (err) {
@@ -997,6 +1106,7 @@ export const checkPremiumStatus = async (req, res) => {
         // Return premium status
         return res.json({ 
             success: true, 
+            hasUsedTrial: user.isTrial,
             isPremium: user.isPremium,
             subscriptionType: user.subscriptionType,
             trialEndDate: user.trialEndDate,

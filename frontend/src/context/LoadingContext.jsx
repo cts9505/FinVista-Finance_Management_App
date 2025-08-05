@@ -1,22 +1,18 @@
-// context/LoadingContext.js
-import { createContext, useState, useContext, useMemo } from 'react';
+// src/context/LoadingContext.js
+import { createContext, useState, useContext } from 'react';
 
 const LoadingContext = createContext();
 
-export function LoadingProvider({ children }) {
-  const [isLoading, setIsLoading] = useState(false);
+export const useLoading = () => useContext(LoadingContext);
 
-  // useMemo helps prevent re-rendering issues
-  const value = useMemo(() => ({ isLoading, setIsLoading }), [isLoading]);
+const LoadingProvider = ({ children }) => {
+  const [loading, setLoading] = useState(false);
 
   return (
-    <LoadingContext.Provider value={value}>
+    <LoadingContext.Provider value={{ loading, setLoading }}>
       {children}
     </LoadingContext.Provider>
   );
-}
+};
 
-// Custom hook to easily use the context
-export function useLoading() {
-  return useContext(LoadingContext);
-}
+export default LoadingProvider;

@@ -266,132 +266,94 @@ export const deleteBudget = async (req, res) => {
     }
 };
 
-
 // Send budget summary route
 export const sendSummary = async (req, res) => {
     try {
         const { type, month, year } = req.body;
         const userId = req.userId;
 
-        // Validation checks
+        // ... (validation and user checks remain the same) ...
         if (!type) {
-            return res.json({
-                success: false,
-                message: 'Summary type is required'
-            });
+            return res.json({ success: false, message: 'Summary type is required' });
         }
-
         if (type === 'monthly' && (!month || !year)) {
-            return res.json({
-                success: false,
-                message: 'Month and year are required for monthly summary'
-            });
+            return res.json({ success: false, message: 'Month and year are required for monthly summary' });
         }
-
         if (type === 'yearly' && !year) {
-            return res.json({
-                success: false,
-                message: 'Year is required for yearly summary'
-            });
+            return res.json({ success: false, message: 'Year is required for yearly summary' });
         }
 
-        // Find the user
         const user = await userModel.findById(userId);
         if (!user) {
-            return res.json({
-                success: false,
-                message: 'User not found'
-            });
+            return res.json({ success: false, message: 'User not found' });
         }
 
-        // Check if user is premium
         if (!user.isPremium) {
-            return res.json({
-                success: false,
-                message: 'This feature is available only for premium users'
-            });
+            return res.json({ success: false, message: 'This feature is available only for premium users' });
         }
 
-        let budgets, expenses, subject, period;
+        let budgets, subject, period;
         let startDate, endDate;
 
-        // Fetch budgets and expenses based on summary type
         if (type === 'monthly') {
-            startDate = new Date(year, month - 1, 1);
-            endDate = new Date(year, month, 0);
+            // FIX: Create dates in UTC to match database
+            startDate = new Date(Date.UTC(year, month - 1, 1));
+            // Get the last day of the month in UTC
+            endDate = new Date(Date.UTC(year, month, 0, 23, 59, 59, 999));
             
             const monthName = new Date(year, month - 1).toLocaleString('default', { month: 'long' });
 
             budgets = await BudgetModel.find({
-                user: userId,
+                userId: userId,
                 startDate: { $gte: startDate },
                 endDate: { $lte: endDate }
             });
-
-            expenses = await ExpenseModel.find({
-                user: userId,
-                date: { $gte: startDate, $lte: endDate }
-            });
-
+            
             subject = `Budget Summary for ${monthName} ${year}`;
             period = `${monthName} ${year}`;
-        } else {
-            startDate = new Date(year, 0, 1);
-            endDate = new Date(year, 11, 31);
+        } else { // Yearly summary
+            // FIX: Create dates in UTC for yearly query
+            startDate = new Date(Date.UTC(year, 0, 1));
+            endDate = new Date(Date.UTC(year, 11, 31, 23, 59, 59, 999));
 
             budgets = await BudgetModel.find({
-                user: userId,
+                userId: userId,
                 startDate: { $gte: startDate },
                 endDate: { $lte: endDate }
-            });
-
-            expenses = await ExpenseModel.find({
-                user: userId,
-                date: { $gte: startDate, $lte: endDate }
             });
 
             subject = `Budget Summary for ${year}`;
             period = `${year}`;
         }
 
-        // Calculate summary
+        if (budgets.length === 0) {
+             return res.json({
+                success: false,
+                message: `No budgets found for the selected period (${period}).`
+            });
+        }
+
         const totalBudget = budgets.reduce((sum, budget) => sum + budget.amount, 0);
-        const totalSpent = expenses.reduce((sum, expense) => sum + expense.amount, 0);
-        const remaining = totalBudget - totalSpent;
-
-        // Generate category-wise breakdown
-        const categoryBreakdown = budgets.map(budget => {
-            const categoryExpenses = expenses
-                .filter(e => e.category.toLowerCase() === budget.category.toLowerCase())
-                .reduce((sum, e) => sum + e.amount, 0);
-            return {
-                title: budget.title,
-                category: budget.category,
-                budget: budget.amount,
-                spent: categoryExpenses,
-                remaining: budget.amount - categoryExpenses
-            };
-        });
-
-        // Generate budget rows for email template
-        const budgetRows = categoryBreakdown.map(item => `
-            <tr>
-                <td>${item.title} (${item.category})</td>
-                <td>₹${item.budget.toFixed(2)}</td>
-                <td>₹${item.spent.toFixed(2)}</td>
-            </tr>
-        `).join('');
-
-        // Create Excel file for attachment
-        const workbook = await createExcelReport(categoryBreakdown, type, period, totalBudget, totalSpent, remaining);
+        const totalUsed = budgets.reduce((sum, budget) => sum + budget.used, 0);
+        const remaining = totalBudget - totalUsed;
         
-        // Save the Excel file temporarily
+        const budgetRows = budgets.map(budget => {
+            return `
+                <tr>
+                    <td>${budget.title} (${budget.category})</td>
+                    <td>₹${budget.amount.toFixed(2)}</td>
+                    <td>₹${budget.used.toFixed(2)}</td>
+                </tr>
+            `;
+        }).join('');
+
+        const workbook = await createExcelReport(budgets, type, period, totalBudget, totalUsed, remaining);
+        
         const excelFileName = `${type}_budget_summary_${Date.now()}.xlsx`;
         const excelFilePath = path.join(os.tmpdir(), excelFileName);
         
         await workbook.xlsx.writeFile(excelFilePath);
 
-        // Select the correct template based on summary type
         let template;
         let templateData;
         
@@ -402,7 +364,7 @@ export const sendSummary = async (req, res) => {
                 month: new Date(year, month - 1).toLocaleString('default', { month: 'long' }),
                 year: year,
                 totalBudget: totalBudget.toFixed(2),
-                totalUsed: totalSpent.toFixed(2),
+                totalUsed: totalUsed.toFixed(2),
                 savings: remaining.toFixed(2),
                 budgetRows: budgetRows
             };
@@ -412,18 +374,16 @@ export const sendSummary = async (req, res) => {
                 name: user.name,
                 year: year,
                 totalBudget: totalBudget.toFixed(2),
-                totalUsed: totalSpent.toFixed(2),
+                totalUsed: totalUsed.toFixed(2),
                 budgetRows: budgetRows
             };
         }
 
-        // Replace all placeholders in the template
         let htmlContent = template;
         for (const [key, value] of Object.entries(templateData)) {
             htmlContent = htmlContent.replace(new RegExp(`{{${key}}}`, 'g'), value);
         }
 
-        // Prepare email with attachment
         const mailOptions = {
             from: process.env.SENDER_EMAIL,
             to: user.email,
@@ -437,10 +397,8 @@ export const sendSummary = async (req, res) => {
             ]
         };
 
-        // Send email
         await transporter.sendMail(mailOptions);
 
-        // Delete the temporary file
         fs.unlink(excelFilePath, (err) => {
             if (err) console.error('Error deleting temporary Excel file:', err);
         });
@@ -458,247 +416,67 @@ export const sendSummary = async (req, res) => {
         });
     }
 };
-
-// Function to create Excel report - simplified version without charts
-const createExcelReport = async (categoryBreakdown, type, period, totalBudget, totalSpent, remaining) => {
-    // Create a new Excel workbook
+// You will also need to update this helper function
+const createExcelReport = async (budgets, type, period, totalBudget, totalUsed, remaining) => {
+    // This function needs to be rewritten to only use the budget data,
+    // not expense or categoryBreakdown data.
     const workbook = new Excel.Workbook();
-    
-    // Add main summary worksheet
     const summarySheet = workbook.addWorksheet('Budget Summary');
 
-    // Add title row
-    summarySheet.mergeCells('A1:E1');
+    // Add title and headers
+    summarySheet.mergeCells('A1:C1');
     const titleCell = summarySheet.getCell('A1');
     titleCell.value = `${type === 'monthly' ? 'Monthly' : 'Yearly'} Budget Summary - ${period}`;
     titleCell.font = { size: 16, bold: true };
     titleCell.alignment = { horizontal: 'center' };
 
-    // Add headers
-    summarySheet.addRow(['Category', 'Budget Title', 'Budget Amount (₹)', 'Spent Amount (₹)', 'Remaining (₹)']);
+    summarySheet.addRow(['Budget Title (Category)', 'Budget Amount (₹)', 'Amount Used (₹)']);
     
-    // Style the header row
+    // Style header row
     const headerRow = summarySheet.getRow(2);
     headerRow.font = { bold: true };
-    headerRow.fill = {
-        type: 'pattern',
-        pattern: 'solid',
-        fgColor: { argb: 'FFE2E8F0' }
-    };
+    headerRow.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFE2E8F0' } };
 
-    // Add data rows
-    categoryBreakdown.forEach(item => {
+    // Add budget data rows
+    budgets.forEach(budget => {
         summarySheet.addRow([
-            item.category,
-            item.title,
-            item.budget,
-            item.spent,
-            item.remaining
+            `${budget.title} (${budget.category})`,
+            budget.amount,
+            budget.used
         ]);
     });
 
     // Add summary row
     summarySheet.addRow([]);
-    const summaryRowIndex = categoryBreakdown.length + 4;
-    summarySheet.addRow(['Total', '', totalBudget, totalSpent, remaining]);
+    const summaryRowIndex = budgets.length + 4;
+    summarySheet.addRow(['Total', totalBudget, totalUsed]);
     
-    // Style the summary row
     const summaryRow = summarySheet.getRow(summaryRowIndex);
     summaryRow.font = { bold: true };
-    summaryRow.fill = {
-        type: 'pattern',
-        pattern: 'solid',
-        fgColor: { argb: 'FFF8FAFC' }
-    };
+    summaryRow.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF8FAFC' } };
 
     // Format currency columns
-    for (let i = 3; i <= categoryBreakdown.length + 2; i++) {
-        ['C', 'D', 'E'].forEach(col => {
+    for (let i = 3; i <= budgets.length + 2; i++) {
+        ['B', 'C'].forEach(col => {
             const cell = summarySheet.getCell(`${col}${i}`);
             cell.numFmt = '₹#,##0.00';
         });
     }
-    
-    // Format total row
-    ['C', 'D', 'E'].forEach(col => {
+    ['B', 'C'].forEach(col => {
         const cell = summarySheet.getCell(`${col}${summaryRowIndex}`);
         cell.numFmt = '₹#,##0.00';
     });
 
-    // Add category breakdown sheet
-    const categorySheet = workbook.addWorksheet('Category Analysis');
-    
-    // Add title to category sheet
-    categorySheet.mergeCells('A1:C1');
-    const catTitleCell = categorySheet.getCell('A1');
-    catTitleCell.value = 'Budget Allocation by Category';
-    catTitleCell.font = { size: 16, bold: true };
-    catTitleCell.alignment = { horizontal: 'center' };
-    
-    // Add headers for category sheet
-    categorySheet.addRow(['Category', 'Total Budget (₹)', 'Percentage']);
-    
-    // Style header row
-    const catHeaderRow = categorySheet.getRow(2);
-    catHeaderRow.font = { bold: true };
-    catHeaderRow.fill = {
-        type: 'pattern',
-        pattern: 'solid',
-        fgColor: { argb: 'FFE2E8F0' }
-    };
-    
-    // Create category totals
-    const categoryTotals = {};
-    categoryBreakdown.forEach(item => {
-        if (!categoryTotals[item.category]) {
-            categoryTotals[item.category] = 0;
-        }
-        categoryTotals[item.category] += item.budget;
-    });
-    
-    // Add category data rows
-    Object.entries(categoryTotals).forEach(([category, budget]) => {
-        const percentage = (budget / totalBudget) * 100;
-        categorySheet.addRow([
-            category,
-            budget,
-            `${percentage.toFixed(2)}%`
-        ]);
-    });
-    
-    // Format budget column
-    for (let i = 3; i < 3 + Object.keys(categoryTotals).length; i++) {
-        const cell = categorySheet.getCell(`B${i}`);
-        cell.numFmt = '₹#,##0.00';
-    }
-    
-    // Add budget vs spent sheet
-    const comparisonSheet = workbook.addWorksheet('Budget vs Actual');
-    
-    // Add title to comparison sheet
-    comparisonSheet.mergeCells('A1:C1');
-    const compTitleCell = comparisonSheet.getCell('A1');
-    compTitleCell.value = 'Budget vs Actual Spending by Category';
-    compTitleCell.font = { size: 16, bold: true };
-    compTitleCell.alignment = { horizontal: 'center' };
-    
-    // Add headers for comparison sheet
-    comparisonSheet.addRow(['Category', 'Budget (₹)', 'Actual Spent (₹)', 'Difference (₹)', 'Utilization (%)']);
-    
-    // Style header row
-    const compHeaderRow = comparisonSheet.getRow(2);
-    compHeaderRow.font = { bold: true };
-    compHeaderRow.fill = {
-        type: 'pattern',
-        pattern: 'solid',
-        fgColor: { argb: 'FFE2E8F0' }
-    };
-    
-    // Prepare category comparison data
-    const categoryComparison = {};
-    
-    // Add budget amounts
-    categoryBreakdown.forEach(item => {
-        if (!categoryComparison[item.category]) {
-            categoryComparison[item.category] = {
-                budget: 0,
-                spent: 0
-            };
-        }
-        categoryComparison[item.category].budget += item.budget;
-        categoryComparison[item.category].spent += item.spent;
-    });
-    
-    // Add comparison data rows
-    Object.entries(categoryComparison).forEach(([category, data]) => {
-        const difference = data.budget - data.spent;
-        const utilization = data.budget > 0 ? (data.spent / data.budget) * 100 : 0;
-        
-        comparisonSheet.addRow([
-            category,
-            data.budget,
-            data.spent,
-            difference,
-            `${utilization.toFixed(2)}%`
-        ]);
-    });
-    
-    // Format currency columns
-    for (let i = 3; i < 3 + Object.keys(categoryComparison).length; i++) {
-        ['B', 'C', 'D'].forEach(col => {
-            const cell = comparisonSheet.getCell(`${col}${i}`);
-            cell.numFmt = '₹#,##0.00';
-        });
-        
-        // Color code differences
-        const differenceCell = comparisonSheet.getCell(`D${i}`);
-        const utilizationCell = comparisonSheet.getCell(`E${i}`);
-        
-        if (differenceCell.value < 0) {
-            // Over budget
-            differenceCell.font = { color: { argb: 'FFFF0000' } }; // Red
-            utilizationCell.font = { color: { argb: 'FFFF0000' } }; // Red
-        }
-    }
-    
-    // Add transaction detail sheet if there are expenses
-    if (categoryBreakdown.some(item => item.spent > 0)) {
-        const detailSheet = workbook.addWorksheet('Transaction Details');
-        
-        // Add title
-        detailSheet.mergeCells('A1:E1');
-        const detailTitleCell = detailSheet.getCell('A1');
-        detailTitleCell.value = `Detailed Transactions - ${period}`;
-        detailTitleCell.font = { size: 16, bold: true };
-        detailTitleCell.alignment = { horizontal: 'center' };
-        
-        // Add headers for detail sheet
-        detailSheet.addRow(['Category', 'Budget', 'Date', 'Amount (₹)', 'Status']);
-        
-        // Style header row
-        const detailHeaderRow = detailSheet.getRow(2);
-        detailHeaderRow.font = { bold: true };
-        detailHeaderRow.fill = {
-            type: 'pattern',
-            pattern: 'solid',
-            fgColor: { argb: 'FFE2E8F0' }
-        };
-        
-        // Add placeholder for transaction details
-        // This would normally pull from actual transaction data
-        categoryBreakdown.forEach(item => {
-            if (item.spent > 0) {
-                detailSheet.addRow([
-                    item.category,
-                    item.title,
-                    new Date().toLocaleDateString(),
-                    item.spent,
-                    'Completed'
-                ]);
+    // Auto-fit columns
+    summarySheet.columns.forEach(column => {
+        let maxLength = 0;
+        column.eachCell({ includeEmpty: false }, cell => {
+            const columnLength = cell.value ? cell.value.toString().length : 10;
+            if (columnLength > maxLength) {
+                maxLength = columnLength;
             }
         });
-        
-        // Format currency column
-        for (let i = 3; i < 3 + categoryBreakdown.length; i++) {
-            const cell = detailSheet.getCell(`D${i}`);
-            if (cell.value) {
-                cell.numFmt = '₹#,##0.00';
-            }
-        }
-    }
-
-    // Auto-fit columns for all sheets
-    workbook.eachSheet(sheet => {
-        sheet.columns.forEach(column => {
-            let maxLength = 0;
-            column.eachCell({ includeEmpty: false }, cell => {
-                const columnLength = cell.value ? cell.value.toString().length : 10;
-                if (columnLength > maxLength) {
-                    maxLength = columnLength;
-                }
-            });
-            column.width = maxLength < 10 ? 10 : maxLength + 2;
-        });
+        column.width = maxLength < 10 ? 10 : maxLength + 2;
     });
 
     return workbook;

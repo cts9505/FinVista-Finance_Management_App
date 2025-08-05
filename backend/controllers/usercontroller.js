@@ -11,12 +11,16 @@ export const getUserData = async (req, res) => {
 
     const onboardingData = user.onboardingData || {};
 
+    let hasPassword=false;
+    if(user.password) hasPassword=true;
+
     return res.status(200).json({
       success: true,
       userData: {
         name: user.name,
         email: user.email,
         address: user.address,
+        hasPassword:hasPassword,
         phone: user.phone,
         age: user.age,
         image: user.image,

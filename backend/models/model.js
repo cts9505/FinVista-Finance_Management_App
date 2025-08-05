@@ -60,8 +60,14 @@ const userSchema = new mongoose.Schema({
     password: {
         type: String,
         required: function() {
-            return this.isNew;
+            return this.authProvider === 'local';
         }
+    },
+    authProvider: {
+        type: String,
+        enum: ['local', 'google'],
+        required: true,
+        default: 'local'
     },
     lastPasswordChange: {
         type: Date,
@@ -180,6 +186,7 @@ const userSchema = new mongoose.Schema({
             },
             amount: {
                 type: Number,
+                default: 0,
                 required: true
             },
             createdAt: {

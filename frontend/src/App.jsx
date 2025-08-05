@@ -1,5 +1,8 @@
 import './index.css'
+import React, { useEffect } from 'react';
 import { Routes,Route,Navigate } from 'react-router-dom'
+import axios from 'axios';
+import Loader from './components/Loader';
 import Home from './pages/Home'
 import Login from './pages/Login'
 import ResetPassword from './pages/ResetPassword'
@@ -40,9 +43,28 @@ import Features from './pages/FeaturesPage'
 import Sitemap from './pages/Sitepage'
 import VerifyEmail from './pages/EmailVerify'
 import PricingPage from './pages/PricingPage'
+import NotFoundPage from './pages/NotFound'
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isBackendReady, setIsBackendReady] = useState(false);
+
+  useEffect(() => {
+    const checkBackend = async () => {
+      try {
+        await axios.get(import.meta.env.VITE_BACKEND_PING_URL || 'https://your-backend.onrender.com/ping');
+        setIsBackendReady(true);
+      } catch (err) {
+        console.error("Backend cold start delay. Retrying in 30s...");
+        setTimeout(checkBackend, 30000); // retry after 2 seconds
+      }
+    };
+
+    checkBackend();
+  }, []);
+
+  if (!isBackendReady) return <Loader />;
+  
 	const GoogleWrapper = ()=>(
 		<GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID}>
 			<Login></Login>
@@ -63,8 +85,6 @@ function App() {
         <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/reset-password/:token" element={<ResetPassword />} />
         <Route element={<ProtectedRoute />}>
-          <Route path="/verify-email" element={<VerifyEmail />} />
-          <Route path="/verify-email/:token" element={<EmailVerify />} />
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/budgets" element={<BudgetsDashboard/>}/>
           <Route path="/incomes" element={<IncomePage/>}/>
@@ -76,6 +96,8 @@ function App() {
           <Route path='/chat' element={<ChatPage/>}/>
           <Route path='/transaction-upload' element={<ReceiptScanner/>}/>
           <Route path="/change-password" element={<PasswordChangePage />} />
+          <Route path="/verify-email" element={<VerifyEmail />} />
+          <Route path="/verify-email/:token" element={<EmailVerify />} />
         </Route>
         <Route element={<AdminRoute />}>
           <Route path="/all-bugs" element={<BugReportsAdmin />} />
@@ -91,7 +113,7 @@ function App() {
         <Route path="/rating-and-reviews" element={<ReviewPage />} />
         <Route path="/features" element={<Features />} />
         <Route path="/sitemap" element={<Sitemap />} />
-        <Route path="*" element={<NotFound />} />
+        <Route path="*" element={<NotFoundPage/>} />
       </Routes>
       <Toaster  toastOptions={{className:'',style:{fontSize:'15px'}}} />
     </GoogleOAuthProvider>

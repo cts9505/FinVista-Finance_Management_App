@@ -1,7 +1,7 @@
 // server/routes/aiChatRoutes.js
 
 import express from 'express';
-import { chatWithAI, getAIChatSuggestions, getChatLimits, getChatHistory } from '../controllers/aiChatController.js';
+import { chatWithAI, getAIChatSuggestions, getChatLimits, getChatHistory, getDailyInsight } from '../controllers/aiChatController.js';
 
 import userAuth from '../middleware/userAuth.js';
 import { getUserData } from '../controllers/usercontroller.js';
@@ -17,5 +17,7 @@ Chatrouter.get('/suggestions', userAuth, getAIChatSuggestions);
 Chatrouter.get('/limits',userAuth,getChatLimits);
 
 Chatrouter.get("/history", userAuth, getChatHistory);
+
+Chatrouter.get('/get-daily-insight', userAuth, getDailyInsight);
 
 export default Chatrouter;
