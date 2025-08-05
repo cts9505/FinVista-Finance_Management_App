@@ -10,6 +10,7 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
+    "@google/generative-ai": "^0.24.1",
     "@upstash/redis": "^1.35.2",
     "axios": "^1.8.1",
     "bcrypt": "^5.1.1",
