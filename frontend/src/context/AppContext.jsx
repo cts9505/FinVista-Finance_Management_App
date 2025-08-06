@@ -33,15 +33,16 @@ export const AppContextProvider = ({ children }) => {
             } else {
                 setIsLoggedin(false);
                 setUserData(undefined);
-                toast.warn('Login to access all features!', { autoClose: 1000 });
             }
         } catch (error) {
             console.error("Auth check error:", error);
             setIsLoggedin(false);
             setUserData(undefined);
-            toast.warn('Login to access all features!', { autoClose: 1000 });
         }
-        setLoading(false);  // 🔥 Done loading
+        setTimeout(() => {
+            setLoading(false);  // 🔥 Done loading
+        }, 10000);
+        // setLoading(false);  // 🔥 Done loading
     };
 
     const getUserData = async () => {
