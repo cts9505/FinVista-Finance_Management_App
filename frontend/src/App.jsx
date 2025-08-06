@@ -1,5 +1,6 @@
 import './index.css'
-import React, { useEffect } from 'react';
+import React, { useEffect,useContext } from 'react';
+import { AppContent } from './context/AppContext';
 import { Routes,Route,Navigate } from 'react-router-dom'
 import axios from 'axios';
 import Loader from './components/Loader';
@@ -45,26 +46,13 @@ import VerifyEmail from './pages/EmailVerify'
 import PricingPage from './pages/PricingPage'
 import NotFoundPage from './pages/NotFound'
 
+
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [isBackendReady, setIsBackendReady] = useState(false);
+  const { loading } = useContext(AppContent); // get loading state
 
-  useEffect(() => {
-    const checkBackend = async () => {
-      try {
-        await axios.get(import.meta.env.VITE_BACKEND_PING_URL || 'https://your-backend.onrender.com/ping');
-        setIsBackendReady(true);
-      } catch (err) {
-        console.error("Backend cold start delay. Retrying in 30s...");
-        setTimeout(checkBackend, 30000); // retry after 2 seconds
-      }
-    };
+  if (loading) return <Loader />; // full-screen loader if backend is cold
 
-    checkBackend();
-  }, []);
-
-  if (!isBackendReady) return <Loader />;
-  
 	const GoogleWrapper = ()=>(
 		<GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID}>
 			<Login></Login>

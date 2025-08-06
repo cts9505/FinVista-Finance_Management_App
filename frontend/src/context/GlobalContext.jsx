@@ -3,6 +3,7 @@ import axios from "axios";
 import { toast } from "react-toastify";
 import { CheckCircle2, Mail, ShieldCheck, Key } from 'lucide-react'
 import { AppContent } from "./AppContext";
+
 const BASE_URL = import.meta.env.VITE_BACKEND_URL;
 
 export const GlobalContext = createContext();  // ✅ Named export
