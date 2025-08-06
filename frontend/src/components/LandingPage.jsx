@@ -1,39 +1,44 @@
-import React, { useState, useEffect, useRef, useContext } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import React, { useState, useEffect, useRef } from "react";
+import { motion, AnimatePresence, useScroll, useTransform } from "framer-motion";
+
 import { useNavigate, Link } from "react-router-dom";
 import { AppContent } from "../context/AppContext";
 import FooterContainer from "../components/Footer.jsx";
 
-// Import icons or you can use your own assets
-const FeatureIcon = ({ children }) => (
-  <div className="rounded-full bg-blue-100 p-3 w-12 h-12 flex items-center justify-center text-blue-600">
-    {children}
-  </div>
-);
+const WaveDivider = ({ className }) => (
+    <div className={className}>
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320" preserveAspectRatio="none" className="w-full h-20">
+        <path fill="#ffffff" fillOpacity="1" d="M0,96L48,117.3C96,139,192,181,288,181.3C384,181,480,139,576,144C672,149,768,203,864,208C960,213,1056,171,1152,160C1248,149,1344,171,1392,181.3L1440,192L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"></path>
+      </svg>
+    </div>
+  );
 
 const LandingPage = () => {
-  const navigate = useNavigate();
-  const { userData, isLoggedin } = useContext(AppContent);
   const [currentTestimonial, setCurrentTestimonial] = useState(0);
   const [isVisible, setIsVisible] = useState(false);
+  const [activeFeature, setActiveFeature] = useState(null);
+  const [expandedFAQ, setExpandedFAQ] = useState(null);
+  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+  
   const heroRef = useRef(null);
-  const featuresRef = useRef(null);
   const statsRef = useRef(null);
+  const { scrollYProgress } = useScroll();
+  const backgroundY = useTransform(scrollYProgress, [0, 1], ['0%', '50%']);
+  const scale = useTransform(scrollYProgress, [0, 0.5], [1, 0.8]);
 
-  // Parallax effect for hero section
+  
+
+  // Mouse tracking for interactive elements
   useEffect(() => {
-    const handleScroll = () => {
-      if (heroRef.current) {
-        const scrollY = window.scrollY;
-        heroRef.current.style.backgroundPositionY = `${scrollY * 0.5}px`;
-      }
+    const handleMouseMove = (e) => {
+      setMousePosition({ x: e.clientX, y: e.clientY });
     };
-
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
+    
+    window.addEventListener('mousemove', handleMouseMove);
+    return () => window.removeEventListener('mousemove', handleMouseMove);
   }, []);
 
-  // Animation trigger for stats counter
+  // Stats counter visibility
   useEffect(() => {
     const observer = new IntersectionObserver(
       ([entry]) => {
@@ -62,7 +67,6 @@ const LandingPage = () => {
     return () => clearInterval(interval);
   }, []);
 
-  // Sample data
   const features = [
     {
       icon: (
@@ -70,8 +74,10 @@ const LandingPage = () => {
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
         </svg>
       ),
-      title: "Budget Tracking",
-      description: "Track your expenses, set budgets, and get real-time alerts when you're overspending."
+      title: "Smart Budget Tracking",
+      description: "AI-powered expense categorization with real-time alerts and predictive budgeting insights.",
+      gradient: "from-blue-500 to-cyan-500",
+      hoverColor: "blue"
     },
     {
       icon: (
@@ -79,156 +85,218 @@ const LandingPage = () => {
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 8v8m-4-5v5m-4-2v2m-2 4h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
         </svg>
       ),
-      title: "Investment Analytics",
-      description: "Track portfolio performance, analyze investments, and get personalized recommendations."
+      title: "Investment Intelligence",
+      description: "Advanced portfolio analytics with machine learning recommendations and risk assessment.",
+      gradient: "from-purple-500 to-pink-500",
+      hoverColor: "purple"
     },
     {
       icon: (
         <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-5 5v-5zM9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
         </svg>
       ),
-      title: "Bill Reminders",
-      description: "Never miss a payment with automated bill reminders and payment tracking."
+      title: "Automated Reminders",
+      description: "Never miss a payment with intelligent scheduling and multi-channel notifications.",
+      gradient: "from-green-500 to-teal-500",
+      hoverColor: "green"
     },
     {
       icon: (
         <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
         </svg>
       ),
-      title: "Financial Reports",
-      description: "Generate comprehensive reports to understand your spending habits and financial health."
+      title: "Dynamic Reports",
+      description: "Interactive financial reports with drill-down capabilities and exportable insights.",
+      gradient: "from-orange-500 to-red-500",
+      hoverColor: "orange"
     },
     {
       icon: (
         <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
         </svg>
       ),
-      title: "Bank-Level Security",
-      description: "Your financial data is protected with industry-standard encryption and security measures."
+      title: "Military-Grade Security",
+      description: "Zero-knowledge encryption, biometric authentication, and blockchain-backed security.",
+      gradient: "from-indigo-500 to-purple-500",
+      hoverColor: "indigo"
     },
     {
       icon: (
         <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
         </svg>
       ),
-      title: "Goal Setting",
-      description: "Set financial goals and track your progress with visual indicators and milestones."
+      title: "Goal Achievement",
+      description: "Gamified financial goals with milestone tracking and achievement rewards.",
+      gradient: "from-yellow-500 to-orange-500",
+      hoverColor: "yellow"
     }
   ];
 
   const testimonials = [
     {
       name: "Sarah Johnson",
-      role: "Small Business Owner",
+      role: "Tech Entrepreneur",
       image: "https://randomuser.me/api/portraits/women/17.jpg",
-      quote: "Finvista has transformed how I manage my business finances. The dashboard gives me a clear picture of my cash flow and helps me make informed decisions."
+      quote: "Finvista transformed my startup's financial management. The AI insights helped me optimize cash flow and secure Series A funding.",
+      rating: 5,
+      company: "TechFlow Inc."
     },
     {
       name: "Michael Chen",
-      role: "Freelance Developer",
+      role: "Investment Advisor",
       image: "https://randomuser.me/api/portraits/men/32.jpg",
-      quote: "As someone who juggles multiple income streams, Finvista's categorization features save me hours of work each month. The tax reporting feature is a lifesaver!"
+      quote: "The portfolio analytics are incredibly sophisticated. I use Finvista to manage both personal and client investments with confidence.",
+      rating: 5,
+      company: "Wealth Dynamics"
     },
     {
       name: "Priya Patel",
-      role: "Marketing Executive",
+      role: "Digital Nomad",
       image: "https://randomuser.me/api/portraits/women/44.jpg",
-      quote: "The budgeting tools have helped me save more than ever before. I love how I can visualize my spending patterns and adjust accordingly."
+      quote: "Managing finances across multiple currencies and countries was a nightmare. Finvista made it seamless and automated.",
+      rating: 5,
+      company: "Remote Creative"
     }
   ];
 
-  const pricing = [
-    {
-      name: "Basic",
-      price: "Free",
-      features: [
-        "Expense Tracking",
-        "Basic Budgeting",
-        "Limited Reports",
-        "Single Device"
-      ],
-      recommended: false,
-      buttonText: "Get Started"
-    },
-    {
-      name: "Pro",
-      price: "₹1",
-      period: "monthly",
-      features: [
-        "Everything in Basic",
-        "Investment Tracking",
-        "Bill Reminders",
-        "Unlimited Reports",
-        "Multiple Devices"
-      ],
-      recommended: true,
-      buttonText: "Try Free for 7 Days"
-    },
-  ];
-
   const stats = [
-    { number: 100000, suffix: "+", label: "Users" },
-    { number: 5000000, suffix: "+", label: "Transactions Tracked" },
-    { number: 50, suffix: "M+", label: "Budget Goals Achieved" }
+    { number: 250000, suffix: "+", label: "Active Users", icon: "👥" },
+    { number: 15000000, suffix: "+", label: "Transactions Tracked", icon: "💸" },
+    { number: 150, suffix: "M+", label: "Goals Achieved", icon: "🎯" },
+    { number: 99.9, suffix: "%", label: "Uptime", icon: "⚡" }
   ];
 
-  // Animation for counting up numbers
+  const faqs = [
+    {
+      question: "How does Finvista's AI technology work?",
+      answer: "Our AI uses machine learning algorithms to analyze spending patterns, predict future expenses, and provide personalized financial recommendations. It continuously learns from your behavior to offer increasingly accurate insights while maintaining complete privacy."
+    },
+    {
+      question: "Is my financial data truly secure?",
+      answer: "Absolutely. We use bank-level 256-bit encryption, zero-knowledge architecture, and never store your actual banking credentials. All data is encrypted both in transit and at rest, with regular security audits by third-party experts."
+    },
+    {
+      question: "Can I connect international accounts?",
+      answer: "Yes! Finvista supports over 15,000 financial institutions across 40+ countries, with automatic currency conversion and real-time exchange rates for seamless global financial management."
+    },
+    {
+      question: "What makes Finvista different from other apps?",
+      answer: "Our advanced AI, comprehensive cross-platform integration, real-time collaboration features, and predictive analytics set us apart. Plus, we offer 24/7 human support and a 99.9% uptime guarantee."
+    },
+    {
+      question: "How quickly can I get started?",
+      answer: "Account setup takes less than 3 minutes. Our smart onboarding process automatically categorizes transactions and creates initial budgets based on your spending patterns within 24 hours."
+    }
+  ];
+
+  // Animation variants
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        duration: 0.8,
+        staggerChildren: 0.1
+      }
+    }
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: { duration: 0.5 }
+    }
+  };
+
+  const floatingVariants = {
+    animate: {
+      y: [-10, 10, -10],
+      rotate: [0, 2, -2, 0],
+      transition: {
+        duration: 6,
+        repeat: Infinity,
+        ease: "easeInOut"
+      }
+    }
+  };
+
+  // Counter component with enhanced animation
   const Counter = ({ value, duration = 2, suffix }) => {
     const [count, setCount] = useState(0);
-  
+
     useEffect(() => {
       if (!isVisible) return;
-  
+
       let start = 0;
       const end = parseInt(value);
-      const incrementTime = (duration * 1000) / end;
+      const incrementTime = (duration * 1000) / 100;
+      const increment = Math.ceil(end / 100);
+      
       const counter = setInterval(() => {
-        start += Math.ceil(end / 100);
-        setCount(start);
-  
+        start += increment;
         if (start >= end) {
-          clearInterval(counter);
           setCount(end);
+          clearInterval(counter);
+        } else {
+          setCount(start);
         }
       }, incrementTime);
-  
+
       return () => clearInterval(counter);
-    }, [value, duration, isVisible]); // Changed 'end' to 'value' in dependencies
-  
-    // Format number with commas
+    }, [value, duration, isVisible]);
+
     const formatNumber = (num) => {
-      return num >= 1000000
-        ? (num / 1000000).toFixed(1) + "M"
-        : num >= 1000
-        ? (num / 1000).toFixed(0) + "K"
-        : num;
+      if (num >= 1000000) return (num / 1000000).toFixed(1) + "M";
+      if (num >= 1000) return (num / 1000).toFixed(0) + "K";
+      return num.toString();
     };
-  
+
     return (
-      <span className="text-4xl font-bold text-blue-600">
-        {formatNumber(count)}
+      <span className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-white to-blue-100 bg-clip-text text-transparent">
+        {suffix === "%" ? count.toFixed(1) : formatNumber(count)}
         {suffix}
       </span>
     );
   };
 
-  // SVG wave divider
-  const WaveDivider = ({ className }) => (
-    <div className={className}>
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320" preserveAspectRatio="none" className="w-full h-20">
-        <path fill="#ffffff" fillOpacity="1" d="M0,96L48,117.3C96,139,192,181,288,181.3C384,181,480,139,576,144C672,149,768,203,864,208C960,213,1056,171,1152,160C1248,149,1344,171,1392,181.3L1440,192L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"></path>
-      </svg>
-    </div>
-  );
-
   return (
-    <>
-      {/* Navigation Bar */}
-      
+    <div className="min-h-screen bg-white overflow-x-hidden">
+      {/* Floating Background Elements */}
+      {/* <div className="fixed inset-0 pointer-events-none overflow-hidden">
+        <motion.div
+          className="absolute top-20 -right-10 w-72 h-72 bg-gradient-to-br from-blue-400/20 to-purple-400/20 rounded-full blur-3xl"
+          animate={{
+            x: [0, 100, 0],
+            y: [0, -50, 0],
+            scale: [1, 1.2, 1]
+          }}
+          transition={{ duration: 15, repeat: Infinity, ease: "easeInOut" }}
+        />
+        <motion.div
+          className="absolute top-1/2 -left-10 w-96 h-96 bg-gradient-to-br from-purple-400/20 to-pink-400/20 rounded-full blur-3xl"
+          animate={{
+            x: [0, -100, 0],
+            y: [0, 100, 0],
+            scale: [1, 1.1, 1]
+          }}
+          transition={{ duration: 20, repeat: Infinity, ease: "easeInOut" }}
+        />
+        <motion.div
+          className="absolute bottom-20 right-1/4 w-64 h-64 bg-gradient-to-br from-cyan-400/20 to-blue-400/20 rounded-full blur-3xl"
+          animate={{
+            x: [0, -150, 0],
+            y: [0, -100, 0],
+            rotate: [0, 180, 360]
+          }}
+          transition={{ duration: 25, repeat: Infinity, ease: "easeInOut" }}
+        />
+      </div> */}
 
       {/* Hero Section */}
       <section 
@@ -364,350 +432,400 @@ const LandingPage = () => {
         <WaveDivider className="absolute bottom-0 left-0 right-0" />
       </section>
 
+
       {/* Features Section */}
-      <section id="features" ref={featuresRef} className="py-20">
+      <section className="py-20 lg:py-32 relative">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <motion.h2 
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.6 }}
-              className="text-3xl md:text-4xl font-bold text-gray-900"
-            >
-              Powerful Features to Manage Your Finances
-            </motion.h2>
-            <motion.p 
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.6, delay: 0.1 }}
-              className="mt-4 text-xl text-gray-600 max-w-3xl mx-auto"
-            >
-              Everything you need to take control of your money, all in one place.
-            </motion.p>
-          </div>
+          <motion.div 
+            initial={{ opacity: 0, y: 50 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.8 }}
+            className="text-center mb-20"
+          >
+            <span className="inline-block px-6 py-3 bg-gradient-to-r from-blue-500/10 to-purple-500/10 text-blue-600 rounded-full text-sm font-semibold mb-6 border border-blue-500/20">
+              ⚡ Powerful Features
+            </span>
+            <h2 className="text-4xl lg:text-6xl font-bold text-gray-900 mb-6">
+              Everything You Need,
+              <br />
+              <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                Nothing You Don't
+              </span>
+            </h2>
+            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+              Revolutionary financial tools powered by cutting-edge AI and designed for the modern investor.
+            </p>
+          </motion.div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {features.map((feature, index) => (
               <motion.div
                 key={index}
-                initial={{ opacity: 0, y: 20 }}
+                initial={{ opacity: 0, y: 50 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
-                transition={{ duration: 0.5, delay: index * 0.1 }}
-                className="bg-white rounded-xl shadow-md hover:shadow-lg transition-shadow duration-300 overflow-hidden"
+                transition={{ duration: 0.6, delay: index * 0.1 }}
+                whileHover={{ 
+                  scale: 1.05,
+                  rotateY: 5,
+                  z: 50
+                }}
+                onHoverStart={() => setActiveFeature(index)}
+                onHoverEnd={() => setActiveFeature(null)}
+                className="group relative bg-white rounded-3xl p-8 shadow-xl hover:shadow-2xl transition-all duration-500 border border-gray-100 overflow-hidden"
               >
-                <div className="p-6">
-                  <div className="rounded-full bg-blue-100 p-3 w-12 h-12 flex items-center justify-center text-blue-600 mb-4">
-                    {feature.icon}
-                  </div>
-                  <h3 className="text-xl font-semibold text-gray-900 mb-2">{feature.title}</h3>
-                  <p className="text-gray-600">{feature.description}</p>
+                {/* Gradient background overlay */}
+                <div className={`absolute inset-0 bg-gradient-to-br ${feature.gradient} opacity-0 group-hover:opacity-5 transition-opacity duration-500`} />
+                
+                {/* Animated icon container */}
+                <motion.div 
+                  className={`relative z-10 rounded-2xl bg-gradient-to-br ${feature.gradient} p-4 w-16 h-16 flex items-center justify-center text-white mb-6 shadow-lg`}
+                  whileHover={{ rotate: 360, scale: 1.1 }}
+                  transition={{ duration: 0.6 }}
+                >
+                  {feature.icon}
+                </motion.div>
+                
+                <div className="relative z-10">
+                  <h3 className="text-2xl font-bold text-gray-900 mb-4 group-hover:text-gray-800 transition-colors">
+                    {feature.title}
+                  </h3>
+                  <p className="text-gray-600 leading-relaxed group-hover:text-gray-700 transition-colors">
+                    {feature.description}
+                  </p>
                 </div>
+                
+                {/* Hover effect overlay */}
+                <motion.div
+                  className="absolute inset-0 bg-gradient-to-br from-white/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                  style={{
+                    background: `linear-gradient(135deg, rgba(255,255,255,0.1) 0%, transparent 50%)`
+                  }}
+                />
               </motion.div>
             ))}
           </div>
         </div>
       </section>
-      
+
       {/* Stats Section */}
-      <section ref={statsRef} className="py-16 bg-gradient-to-r from-blue-600 to-indigo-700 relative">
-        <div className="absolute top-0 left-0 right-0">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320" preserveAspectRatio="none" className="w-full h-20">
-            <path fill="#ffffff" fillOpacity="1" d="M0,192L48,176C96,160,192,128,288,144C384,160,480,224,576,218.7C672,213,768,139,864,128C960,117,1056,171,1152,181.3C1248,192,1344,160,1392,144L1440,128L1440,0L1392,0C1344,0,1248,0,1152,0C1056,0,960,0,864,0C768,0,672,0,576,0C480,0,384,0,288,0C192,0,96,0,48,0L0,0Z"></path>
-          </svg>
+      {/* <section ref={statsRef} className="py-20 relative overflow-hidden">
+        {/* Animated background 
+        <div className="absolute inset-0 bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900">
+          <motion.div
+            className="absolute inset-0 opacity-30"
+            animate={{
+              background: [
+                'radial-gradient(circle at 20% 50%, rgba(120, 119, 198, 0.3) 0%, transparent 50%)',
+                'radial-gradient(circle at 80% 20%, rgba(255, 119, 198, 0.3) 0%, transparent 50%)',
+                'radial-gradient(circle at 40% 80%, rgba(119, 198, 255, 0.3) 0%, transparent 50%)'
+              ]
+            }}
+            transition={{ duration: 10, repeat: Infinity }}
+          />
         </div>
         
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+          <motion.div
+            initial={{ opacity: 0, y: 50 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.8 }}
+            className="text-center mb-16"
+          >
+            <h2 className="text-4xl lg:text-5xl font-bold text-white mb-6">
+              Trusted by Millions
+            </h2>
+            <p className="text-xl text-gray-300 max-w-2xl mx-auto">
+              Join a growing community of smart investors and financial enthusiasts.
+            </p>
+          </motion.div>
+          
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-8">
             {stats.map((stat, index) => (
               <motion.div
                 key={index}
-                initial={{ opacity: 0, scale: 0.9 }}
+                initial={{ opacity: 0, scale: 0.5 }}
                 whileInView={{ opacity: 1, scale: 1 }}
                 viewport={{ once: true }}
-                transition={{ duration: 0.5, delay: index * 0.1 }}
-                className="text-center"
+                transition={{ duration: 0.6, delay: index * 0.1 }}
+                className="text-center group"
               >
-                <div className="flex justify-center">
+                <motion.div
+                  className="text-4xl mb-4"
+                  animate={{ rotate: [0, 10, -10, 0] }}
+                  transition={{ duration: 2, repeat: Infinity, delay: index * 0.5 }}
+                >
+                  {stat.icon}
+                </motion.div>
+                <div className="flex justify-center mb-2">
                   {isVisible && <Counter value={stat.number} suffix={stat.suffix} />}
                 </div>
-                <p className="mt-2 text-xl font-medium text-blue-100">{stat.label}</p>
+                <p className="text-lg font-medium text-gray-300 group-hover:text-white transition-colors">
+                  {stat.label}
+                </p>
               </motion.div>
             ))}
           </div>
         </div>
-        
-        <div className="absolute bottom-0 left-0 right-0 transform rotate-180">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320" preserveAspectRatio="none" className="w-full h-20">
-            <path fill="#ffffff" fillOpacity="1" d="M0,192L48,176C96,160,192,128,288,144C384,160,480,224,576,218.7C672,213,768,139,864,128C960,117,1056,171,1152,181.3C1248,192,1344,160,1392,144L1440,128L1440,0L1392,0C1344,0,1248,0,1152,0C1056,0,960,0,864,0C768,0,672,0,576,0C480,0,384,0,288,0C192,0,96,0,48,0L0,0Z"></path>
-          </svg>
-        </div>
-      </section>
-      
-      {/* Testimonial Section */}
-      <section id="testimonials" className="py-20">
+      </section> */}
+
+      {/* Testimonials Section */}
+      <section className="py-20 lg:py-32 bg-gradient-to-br from-gray-50 to-blue-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <motion.h2 
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.6 }}
-              className="text-3xl md:text-4xl font-bold text-gray-900"
-            >
+          <motion.div
+            initial={{ opacity: 0, y: 50 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.8 }}
+            className="text-center mb-20"
+          >
+            <h2 className="text-4xl lg:text-5xl font-bold text-gray-900 mb-6">
               What Our Users Say
-            </motion.h2>
-            <motion.p 
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.6, delay: 0.1 }}
-              className="mt-4 text-xl text-gray-600 max-w-3xl mx-auto"
-            >
-              Join thousands who have transformed their financial lives with Finvista.
-            </motion.p>
-          </div>
+            </h2>
+            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+              Real stories from real people who've transformed their financial lives.
+            </p>
+          </motion.div>
           
-          <div className="relative h-96 max-w-4xl mx-auto">
+          <div className="relative max-w-5xl mx-auto">
             <AnimatePresence mode="wait">
               {testimonials.map((testimonial, index) => (
                 index === currentTestimonial && (
                   <motion.div
                     key={index}
-                    initial={{ opacity: 0, scale: 0.9 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    exit={{ opacity: 0, scale: 0.9 }}
-                    transition={{ duration: 0.5 }}
-                    className="absolute inset-0 flex flex-col md:flex-row items-center bg-white rounded-2xl shadow-lg p-6 md:p-8"
+                    initial={{ opacity: 0, x: 300 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -300 }}
+                    transition={{ duration: 0.8, type: "spring" }}
+                    className="bg-white rounded-3xl shadow-2xl overflow-hidden"
                   >
-                    <div className="md:w-1/3 mb-6 md:mb-0 flex justify-center">
-                      <div className="w-24 h-24 md:w-32 md:h-32 rounded-full overflow-hidden border-4 border-blue-100">
-                        <img 
-                          src={testimonial.image}
-                          alt={testimonial.name}
-                          className="w-full h-full object-cover"
-                        />
+                    <div className="p-8 lg:p-12">
+                      <div className="flex flex-col lg:flex-row items-center gap-8">
+                        <div className="lg:w-1/3">
+                          <motion.div
+                            className="w-32 h-32 rounded-full overflow-hidden border-4 border-gradient-to-r from-blue-400 to-purple-400 mx-auto"
+                            whileHover={{ scale: 1.05 }}
+                          >
+                            <img 
+                              src={testimonial.image}
+                              alt={testimonial.name}
+                              className="w-full h-full object-cover"
+                            />
+                          </motion.div>
+                          <div className="text-center mt-4">
+                            <h4 className="text-xl font-bold text-gray-900">{testimonial.name}</h4>
+                            <p className="text-blue-600 font-semibold">{testimonial.role}</p>
+                            <p className="text-gray-500 text-sm">{testimonial.company}</p>
+                          </div>
+                        </div>
+                        
+                        <div className="lg:w-2/3 text-center lg:text-left">
+                          <div className="flex justify-center lg:justify-start mb-4">
+                            {[...Array(testimonial.rating)].map((_, i) => (
+                              <motion.svg
+                                key={i}
+                                initial={{ scale: 0 }}
+                                animate={{ scale: 1 }}
+                                transition={{ delay: i * 0.1 }}
+                                className="w-6 h-6 text-yellow-400"
+                                fill="currentColor"
+                                viewBox="0 0 20 20"
+                              >
+                                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                              </motion.svg>
+                            ))}
+                          </div>
+                          <blockquote className="text-xl lg:text-2xl text-gray-700 italic leading-relaxed mb-6">
+                            "{testimonial.quote}"
+                          </blockquote>
+                        </div>
                       </div>
-                    </div>
-                    <div className="md:w-2/3 md:pl-8">
-                      <svg className="w-10 h-10 text-blue-100 mb-4" fill="currentColor" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-                        <path d="M464 256h-80v-64c0-35.3 28.7-64 64-64h8c13.3 0 24-10.7 24-24V56c0-13.3-10.7-24-24-24h-8c-88.4 0-160 71.6-160 160v240c0 26.5 21.5 48 48 48h128c26.5 0 48-21.5 48-48V304c0-26.5-21.5-48-48-48zm-288 0H96v-64c0-35.3 28.7-64 64-64h8c13.3 0 24-10.7 24-24V56c0-13.3-10.7-24-24-24h-8C71.6 32 0 103.6 0 192v240c0 26.5 21.5 48 48 48h128c26.5 0 48-21.5 48-48V304c0-26.5-21.5-48-48-48z"></path>
-                      </svg>
-                      <p className="text-gray-600 text-lg mb-4 italic">{testimonial.quote}</p>
-                      <h4 className="text-xl font-semibold text-gray-900">{testimonial.name}</h4>
-                      <p className="text-blue-600">{testimonial.role}</p>
                     </div>
                   </motion.div>
                 )
               ))}
             </AnimatePresence>
             
-            <div className="absolute bottom-0 left-0 right-0 flex justify-center space-x-2 pb-4">
+            {/* Navigation dots */}
+            <div className="flex justify-center space-x-3 mt-8">
               {testimonials.map((_, index) => (
-                <button
+                <motion.button
                   key={index}
                   onClick={() => setCurrentTestimonial(index)}
-                  className={`w-3 h-3 rounded-full ${index === currentTestimonial ? 'bg-blue-600' : 'bg-gray-300'}`}
-                  aria-label={`View testimonial ${index + 1}`}
+                  className={`w-4 h-4 rounded-full transition-all duration-300 ${
+                    index === currentTestimonial 
+                      ? 'bg-blue-600 scale-125' 
+                      : 'bg-gray-300 hover:bg-gray-400'
+                  }`}
+                  whileHover={{ scale: 1.2 }}
+                  whileTap={{ scale: 0.9 }}
                 />
               ))}
             </div>
           </div>
         </div>
       </section>
-      
-      {/* Pricing Section */}
-      <section id="pricing" className="py-20 bg-gray-50">
-        <div className=" mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <motion.h2 
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.6 }}
-              className="text-3xl md:text-4xl font-bold text-gray-900"
-            >
-              Simple, Transparent Pricing
-            </motion.h2>
-            <motion.p 
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.6, delay: 0.1 }}
-              className="mt-4 text-xl text-gray-600 max-w-3xl mx-auto"
-            >
-              Choose the plan that works best for your financial needs.
-            </motion.p>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            {pricing.map((plan, index) => (
-              <motion.div
-                key={index}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.5, delay: index * 0.1 }}
-                className={`bg-white rounded-xl shadow-md overflow-hidden ${plan.recommended ? 'ring-2 ring-blue-600 transform scale-105 md:-translate-y-2' : ''}`}
-              >
-                {plan.recommended && (
-                  <div className="bg-blue-600 text-white text-center py-2 font-medium">
-                    Recommended
-                  </div>
-                )}
-                
-                <div className="p-6 md:p-8">
-                  <h3 className="text-2xl font-bold text-gray-900">{plan.name}</h3>
-                  <div className="mt-4 flex items-baseline">
-                    <span className="text-4xl font-extrabold text-gray-900">{plan.price}</span>
-                    {plan.period && <span className="ml-1 text-xl font-medium text-gray-500">/{plan.period}</span>}
-                  </div>
-                  
-                  <ul className="mt-6 space-y-4">
-                    {plan.features.map((feature, idx) => (
-                      <li key={idx} className="flex items-start">
-                        <svg className="h-6 w-6 text-green-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
-                        </svg>
-                        <span className="text-gray-600">{feature}</span>
-                      </li>
-                    ))}
-                  </ul>
-                  
-                  <div className="mt-8">
-                    <button
-                      onClick={() => navigate('/login')}
-                      className={`w-full py-3 px-4 rounded-lg font-medium ${
-                        plan.recommended 
-                          ? 'bg-blue-600 hover:bg-blue-700 text-white'
-                          : 'bg-gray-100 hover:bg-gray-200 text-gray-900'
-                      } transition duration-300`}
-                    >
-                      {plan.buttonText}
-                    </button>
-                  </div>
-                </div>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
-      
+
       {/* FAQ Section */}
-      <section id="faq" className="py-20">
+      <section className="py-20 lg:py-32">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <motion.h2 
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.6 }}
-              className="text-3xl md:text-4xl font-bold text-gray-900"
-            >
+          <motion.div
+            initial={{ opacity: 0, y: 50 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.8 }}
+            className="text-center mb-16"
+          >
+            <h2 className="text-4xl lg:text-5xl font-bold text-gray-900 mb-6">
               Frequently Asked Questions
-            </motion.h2>
-            <motion.p 
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.6, delay: 0.1 }}
-              className="mt-4 text-xl text-gray-600"
-            >
+            </h2>
+            <p className="text-xl text-gray-600">
               Everything you need to know about Finvista.
-            </motion.p>
-          </div>
+            </p>
+          </motion.div>
           
-          <div className="space-y-8">
-            {[
-              {
-                question: "How secure is Finvista?",
-                answer: "Finvista uses bank-level 256-bit encryption to protect your data. We implement two-factor authentication, regular security audits, and never store your banking credentials on our servers."
-              },
-              {
-                question: "Can I connect all my financial accounts?",
-                answer: "Yes, Finvista integrates with over 12,000 financial institutions worldwide, allowing you to connect checking, savings, credit cards, loans, investments, and more."
-              },
-              {
-                question: "Is there a mobile app?",
-                answer: "Absolutely! Finvista offers both iOS and Android apps that sync with the web version, allowing you to manage your finances on the go."
-              },
-              {
-                question: "How does the free plan compare to paid plans?",
-                answer: "The free plan offers basic expense tracking and budgeting features. Paid plans include additional features like investment tracking, bill reminders, unlimited report generation, and priority customer support."
-              },
-              {
-                question: "Can I cancel my subscription anytime?",
-                answer: "Yes, you can cancel your subscription at any time. Your plan will continue until the end of the current billing cycle."
-              }
-            ].map((faq, index) => (
+          <div className="space-y-6">
+            {faqs.map((faq, index) => (
               <motion.div
                 key={index}
-                initial={{ opacity: 0, y: 20 }}
+                initial={{ opacity: 0, y: 30 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.5, delay: index * 0.1 }}
-                className="bg-white rounded-xl shadow-md overflow-hidden"
+                className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden"
               >
-                <div className="p-6">
-                  <h3 className="text-lg font-semibold text-gray-900">{faq.question}</h3>
-                  <p className="mt-2 text-gray-600">{faq.answer}</p>
-                </div>
+                <motion.button
+                  onClick={() => setExpandedFAQ(expandedFAQ === index ? null : index)}
+                  className="w-full p-6 text-left flex justify-between items-center hover:bg-gray-50 transition-colors"
+                  whileHover={{ backgroundColor: "#f9fafb" }}
+                >
+                  <h3 className="text-lg font-semibold text-gray-900 pr-4">
+                    {faq.question}
+                  </h3>
+                  <motion.svg
+                    animate={{ rotate: expandedFAQ === index ? 180 : 0 }}
+                    transition={{ duration: 0.3 }}
+                    className="w-6 h-6 text-gray-500 flex-shrink-0"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </motion.svg>
+                </motion.button>
+                
+                <AnimatePresence>
+                  {expandedFAQ === index && (
+                    <motion.div
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: "auto", opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      transition={{ duration: 0.3 }}
+                      className="overflow-hidden"
+                    >
+                      <div className="p-6 pt-0 text-gray-600 leading-relaxed">
+                        {faq.answer}
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </motion.div>
             ))}
           </div>
         </div>
       </section>
-      
+
       {/* CTA Section */}
-      <section className="py-20 bg-gradient-to-r from-blue-600 to-indigo-700 relative">
-        <div className="absolute top-0 left-0 right-0">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320" preserveAspectRatio="none" className="w-full h-20">
-            <path fill="#ffffff" fillOpacity="1" d="M0,192L48,176C96,160,192,128,288,144C384,160,480,224,576,218.7C672,213,768,139,864,128C960,117,1056,171,1152,181.3C1248,192,1344,160,1392,144L1440,128L1440,0L1392,0C1344,0,1248,0,1152,0C1056,0,960,0,864,0C768,0,672,0,576,0C480,0,384,0,288,0C192,0,96,0,48,0L0,0Z"></path>
-          </svg>
+      <section className="py-20 lg:py-32 relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-br from-blue-600 via-purple-600 to-blue-800">
+          <motion.div
+            className="absolute inset-0"
+            animate={{
+              background: [
+                'linear-gradient(45deg, rgba(59, 130, 246, 0.8) 0%, rgba(147, 51, 234, 0.8) 100%)',
+                'linear-gradient(225deg, rgba(147, 51, 234, 0.8) 0%, rgba(59, 130, 246, 0.8) 100%)',
+                'linear-gradient(45deg, rgba(59, 130, 246, 0.8) 0%, rgba(147, 51, 234, 0.8) 100%)'
+              ]
+            }}
+            transition={{ duration: 8, repeat: Infinity }}
+          />
         </div>
         
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 relative">
-          <div className="text-center">
-            <motion.h2 
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.6 }}
-              className="text-3xl md:text-4xl font-bold text-white"
-            >
-              Ready to Take Control of Your Finances?
-            </motion.h2>
-            <motion.p 
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.6, delay: 0.1 }}
-              className="mt-4 text-xl text-blue-100"
-            >
-              Join thousands of users who have transformed their financial future with Finvista.
-            </motion.p>
-            
+        {/* Animated particles */}
+        <div className="absolute inset-0 overflow-hidden">
+          {[...Array(20)].map((_, i) => (
             <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.6, delay: 0.2 }}
-              className="mt-8"
-            >
-              <button 
-                onClick={() => navigate('/upgrade')}
-                className="px-8 py-4 bg-white hover:bg-gray-50 text-blue-600 font-medium rounded-lg shadow-lg hover:shadow-xl transition duration-300"
+              key={i}
+              className="absolute w-2 h-2 bg-white/20 rounded-full"
+              style={{
+                left: `${Math.random() * 100}%`,
+                top: `${Math.random() * 100}%`,
+              }}
+              animate={{
+                y: [-20, 20, -20],
+                opacity: [0.2, 1, 0.2],
+              }}
+              transition={{
+                duration: 3 + Math.random() * 2,
+                repeat: Infinity,
+                delay: Math.random() * 2,
+              }}
+            />
+          ))}
+        </div>
+        
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center">
+          <motion.div
+            initial={{ opacity: 0, y: 50 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.8 }}
+          >
+            <h2 className="text-4xl lg:text-6xl font-bold text-white mb-6">
+              Ready to Transform
+              <br />
+              Your Financial Future?
+            </h2>
+            <p className="text-xl text-blue-100 mb-10 max-w-2xl mx-auto">
+              Join thousands of smart investors who are already using Finvista to build wealth and achieve their financial goals.
+            </p>
+            
+            <div className="flex flex-col sm:flex-row gap-6 justify-center items-center">
+              <motion.button
+                whileHover={{ scale: 1.05, boxShadow: "0 20px 40px rgba(255, 255, 255, 0.2)" }}
+                whileTap={{ scale: 0.95 }}
+                className="group px-8 py-4 bg-white text-blue-600 font-bold rounded-2xl shadow-2xl hover:shadow-white/20 transition-all duration-300"
               >
-                Start Your Free Trial
-              </button>
-              <p className="mt-4 text-blue-100 text-sm">No credit card required. 7-day free trial.</p>
-            </motion.div>
-          </div>
+                <Link to="/login">
+                <span className="flex items-center">
+                  Start Free Trial
+                  <svg className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                  </svg>
+                </span>
+                </Link>
+              </motion.button>
+              <Link to="contact-us">
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                className="px-8 py-4 bg-white/10 backdrop-blur-sm text-white font-semibold rounded-2xl border-2 border-white/30 hover:bg-white/20 transition duration-300"
+              >
+                Schedule Demo
+              </motion.button>
+              </Link>
+            </div>
+            
+            <div className="mt-8 text-blue-100">
+              <p className="text-sm">✓ No credit card required  ✓ 14-day free trial  ✓ Cancel anytime</p>
+            </div>
+          </motion.div>
         </div>
       </section>
-    </>
+
+    </div>
   );
 };
 

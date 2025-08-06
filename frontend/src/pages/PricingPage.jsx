@@ -21,6 +21,7 @@ import {
 } from 'lucide-react';
 import FooterContainer from '../components/Footer';
 import Navbar from '../components/Navbar';
+import { Link } from 'react-router-dom';
 
 const PricingPage = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -354,12 +355,14 @@ const PricingPage = () => {
             </p>
             
             <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12 initial-hidden animate-fadeInUp animate-delay-300">
+              <Link to="/login">
               <button className="bg-blue-600 text-white px-8 py-4 rounded-lg text-lg font-semibold hover:bg-blue-700 transition-all flex items-center justify-center shadow-lg hover:scale-105 hover:shadow-xl">
                 Start Free Trial <ArrowRight className="ml-2" size={20} />
               </button>
               <button className="border-2 border-gray-300 text-gray-700 px-8 py-4 rounded-lg text-lg font-semibold hover:border-blue-600 hover:text-blue-600 transition-all hover:scale-105">
                 Watch Demo
               </button>
+              </Link>
             </div>
             
             {/* Animated Stats */}
@@ -507,10 +510,11 @@ const PricingPage = () => {
                   </li>
                 ))}
               </ul>
-              
+              <Link to="/login">
               <button className="w-full bg-gray-200 text-gray-800 py-3 rounded-lg font-semibold hover:bg-gray-300 transition-all hover:scale-105">
                 Get Started Free
               </button>
+              </Link>
             </div>
             
             {/* Pro Plan with special styling */}
@@ -544,10 +548,11 @@ const PricingPage = () => {
                   </li>
                 ))}
               </ul>
-              
+              <Link to="/upgrade">
               <button className="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition-all flex items-center justify-center hover:scale-105">
                 Start Free Trial <ArrowRight className="ml-2" size={18} />
               </button>
+              </Link>
             </div>
           </div>
         </div>
@@ -623,12 +628,14 @@ const PricingPage = () => {
             </p>
             
             <div className={`flex flex-col sm:flex-row gap-4 justify-center ${visibleSections.has('cta') ? 'animate-fadeInUp animate-delay-200' : 'initial-hidden'}`}>
+              <Link to="/login">
               <button className="bg-white text-blue-600 px-8 py-4 rounded-lg text-lg font-semibold hover:bg-gray-100 transition-all flex items-center justify-center hover:scale-105 hover:shadow-xl">
                 Start Your Free Trial <ArrowRight className="ml-2" size={20} />
               </button>
               <button className="border-2 border-white text-white px-8 py-4 rounded-lg text-lg font-semibold hover:bg-white hover:text-blue-600 transition-all hover:scale-105">
                 Schedule Demo
               </button>
+              </Link>
             </div>
             
             <p className={`text-blue-200 text-sm mt-4 ${visibleSections.has('cta') ? 'animate-fadeInUp animate-delay-300' : 'initial-hidden'}`}>
