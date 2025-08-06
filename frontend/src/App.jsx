@@ -1,3 +1,4 @@
+// frontend/src/App.jsx
 import './index.css'
 import React, { useEffect,useContext } from 'react';
 import { AppContent } from './context/AppContext';

@@ -1,3 +1,4 @@
+// frontend/src/context/AppContext.jsx
 import axios from "axios";
 import { createContext, useState, useEffect } from "react";
 import { toast } from "react-toastify";
@@ -21,6 +22,7 @@ export const AppContextProvider = ({ children }) => {
     }, [isLoggedin]);
 
     const checkAuthWithServer = async () => {
+        
         setLoading(true);  // 🔥 Start loading
         try {
             const response = await axios.post(backendUrl + '/api/auth/is-auth');
@@ -68,8 +70,9 @@ export const AppContextProvider = ({ children }) => {
     };
 
     return (
-        <AppContent.Provider value={value}>
-            {!loading && children}  {/* 🔥 Prevent rendering until loading completes */}
-        </AppContent.Provider>
+    <AppContent.Provider value={value}>
+        {children}
+    </AppContent.Provider>
     );
+
 };

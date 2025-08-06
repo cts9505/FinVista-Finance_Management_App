@@ -1,3 +1,4 @@
+// frontend/src/context/GlobalContext.jsx
 import { createContext, useContext, useState, useEffect, useMemo, useCallback } from "react"; // Add useMemo
 import axios from "axios";
 import { toast } from "react-toastify";
