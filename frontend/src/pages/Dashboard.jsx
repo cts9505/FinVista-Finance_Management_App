@@ -184,6 +184,8 @@ const Dashboard = () => {
     return { totalIncome, totalExpenses, totalBills, totalBalance };
   };
 
+  const [imgError, setImgError] = useState(false);
+
   // Fetch daily AI insight
   const fetchDailyInsight = async () => {
     try {
@@ -540,19 +542,23 @@ const Dashboard = () => {
           <div className="flex flex-col lg:flex-row gap-6 items-start lg:items-center bg-white rounded-xl shadow-lg border-2 border-blue-200 p-6 lg:p-7">
             <div className="flex gap-4 sm:gap-6 items-center flex-1">
               <img
-                src={userData?.image || "/user-avatar.png"}
-                alt={userData?.name || "User"}
-                className="rounded-full border-2 border-blue-300 w-20 h-20 sm:w-24 sm:h-24 object-cover"
-                onError={(e) => {
-                  e.target.src = "/user-avatar.png";
-                }}
+                src={userData?.image && !imgError ? userData.image : undefined}
+                alt="User Profile"
+                className="rounded-full border-2 border-blue-300 w-20 h-20 sm:w-24 sm:h-24 object-cover bg-blue-800"
+                onError={() => setImgError(true)}
               />
+
+              {(!userData?.image || imgError) && (
+                <div className="w-20 h-20 sm:w-24 sm:h-24 flex items-center justify-center rounded-full border-2 border-blue-300 bg-blue-700 absolute">
+                  <User size={40} className="text-gray-300" />
+                </div>
+              )}
               <div className="flex-1">
                 <h1 className="text-2xl lg:text-3xl font-bold text-blue-700">{userData?.name || "User"}</h1>
                 <p className="text-gray-700 font-medium">{userData?.email || "No email"}</p>
                 <div className="flex flex-wrap gap-2 sm:gap-3 text-sm mt-2">
                   {userData?.age > 0 && (
-                    <span className="flex items-center gap-1 text-blue-500">
+                    <span className="flex items-center gap-1 text-blue-100">
                       <User size={16} /> Age: {userData.age}
                     </span>
                   )}

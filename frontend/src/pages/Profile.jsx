@@ -356,7 +356,7 @@ const ProfilePage = () => {
   const [confirmText, setConfirmText] = useState('');
   const [password, setPassword] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
-  
+  const [isDeleting, setIsDeleting] = useState(false);
   // Confirmation message object
   const confirmationMessages = {
     expenses: 'Are you sure you want to delete all expense records? This action cannot be undone.',
@@ -383,91 +383,90 @@ const ProfilePage = () => {
   
   // Handle the second confirmation modal submission
   const handleSecondConfirmation = async () => {
-    // Validation already handled by disabled button state
-    try {
-      let response;
-      
-      switch(confirmationType) {
-        case 'expenses':
-          response = await axios.delete(`${BASE_URL}/api/auth/delete-all-expenses`, { 
-            data: { password },
-            withCredentials: true 
-          });
-          break;
-        case 'income':
-          response = await axios.delete(`${BASE_URL}/api/auth/delete-all-income`, { 
-            data: { password },
-            withCredentials: true 
-          });
-          break;
-        case 'bills':
-          response = await axios.delete(`${BASE_URL}/api/auth/delete-all-bills`, { 
-            data: { password },
-            withCredentials: true 
-          });
-          break;
-        case 'budgets':
-          response = await axios.delete(`${BASE_URL}/api/auth/delete-all-budgets`, { 
-            data: { password },
-            withCredentials: true 
-          });
-          break;
-        case 'categories':
-          response = await axios.delete(`${BASE_URL}/api/auth/delete-all-categories`, { 
-            data: { password },
-            withCredentials: true 
-          });
-          break;
-        case 'transactions':
-          response = await axios.delete(`${BASE_URL}/api/auth/delete-all-transactions`, { 
-            data: { password },
-            withCredentials: true 
-          });
-          break;
-        case 'devices':
-          response = await axios.delete(`${BASE_URL}/api/auth/delete-all-devices`, { 
-            data: { password },
-            withCredentials: true 
-          });
-          break;
-        case 'account':
-          response = await axios.delete(`${BASE_URL}/api/auth//delete-account`, { 
-            data: { password },
-            withCredentials: true 
-          });
-          
-          // If account deletion successful, redirect to logout
-          if (response.status === 200) {
-            toast.success('Account deleted successfully. Logging out in 2 sec...');
-            setTimeout(() => {
-              handleProfileAction("logout");
-            }, 2000);
-          }
-          break;
-        default:
-          throw new Error('Invalid deletion type');
-      }
-      
-      // Set success message based on the response or use a default
-      setSuccessMessage(response.data.message || `All ${confirmationType} have been successfully deleted.`);
-      setShowSuccessNotification(true);
-      
-      // Hide success notification after 5 seconds
-      setTimeout(() => {
-        setShowSuccessNotification(false);
-      }, 5000);
-      
-    } catch (error) {
-      console.error('Error during deletion:', error);
-      alert(`Failed to delete ${confirmationType}. ${error.response?.data?.message || 'Please try again.'}`);
-    } finally {
-      // Close modal and reset states
-      fetchUserData();
-      setShowSecondConfirmModal(false);
-      setConfirmText('');
-      setPassword('');
+  setIsDeleting(true); // start loading
+
+  try {
+    let response;
+
+    switch (confirmationType) {
+      case 'expenses':
+        response = await axios.delete(`${BASE_URL}/api/auth/delete-all-expenses`, {
+          data: { password },
+          withCredentials: true
+        });
+        break;
+      case 'income':
+        response = await axios.delete(`${BASE_URL}/api/auth/delete-all-income`, {
+          data: { password },
+          withCredentials: true
+        });
+        break;
+      case 'bills':
+        response = await axios.delete(`${BASE_URL}/api/auth/delete-all-bills`, {
+          data: { password },
+          withCredentials: true
+        });
+        break;
+      case 'budgets':
+        response = await axios.delete(`${BASE_URL}/api/auth/delete-all-budgets`, {
+          data: { password },
+          withCredentials: true
+        });
+        break;
+      case 'categories':
+        response = await axios.delete(`${BASE_URL}/api/auth/delete-all-categories`, {
+          data: { password },
+          withCredentials: true
+        });
+        break;
+      case 'transactions':
+        response = await axios.delete(`${BASE_URL}/api/auth/delete-all-transactions`, {
+          data: { password },
+          withCredentials: true
+        });
+        break;
+      case 'devices':
+        response = await axios.delete(`${BASE_URL}/api/auth/delete-all-devices`, {
+          data: { password },
+          withCredentials: true
+        });
+        break;
+      case 'account':
+        response = await axios.delete(`${BASE_URL}/api/auth//delete-account`, {
+          data: { password },
+          withCredentials: true
+        });
+
+        if (response.status === 200) {
+          toast.success('Account deleted successfully. Logging out in 2 sec...');
+          setTimeout(() => {
+            handleProfileAction("logout");
+          }, 2000);
+        }
+        break;
+      default:
+        throw new Error('Invalid deletion type');
     }
-  };
+
+    setSuccessMessage(response.data.message || `All ${confirmationType} have been successfully deleted.`);
+    setShowSuccessNotification(true);
+
+    setTimeout(() => {
+      setShowSuccessNotification(false);
+    }, 5000);
+
+  } catch (error) {
+    console.error('Error during deletion:', error);
+    alert(`Failed to delete ${confirmationType}. ${error.response?.data?.message || 'Please try again.'}`);
+  } finally {
+    setIsDeleting(false); // stop loading
+    fetchUserData();
+    setShowSecondConfirmModal(false);
+    setConfirmText('');
+    setPassword('');
+  }
+};
+
 
   // Fetch user's bug reports on component mount
   useEffect(() => {

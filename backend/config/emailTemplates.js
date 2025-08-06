@@ -179,6 +179,7 @@ export const PASSWORD_RESET_TEMPLATE = `
       text-align: center;
       background-color: #FF5722;
       border-radius: 8px 8px 0 0;
+      color: white;
     }
 
     .logo {
@@ -199,9 +200,9 @@ export const PASSWORD_RESET_TEMPLATE = `
       border-top: 1px solid #EEEEEE;
     }
 
-    .title {
-      font-size: 24px;
-      font-weight: 700;
+    .greeting {
+      font-size: 22px;
+      font-weight: 500;
       color: #333333;
       margin-bottom: 20px;
     }
@@ -209,7 +210,7 @@ export const PASSWORD_RESET_TEMPLATE = `
     .message {
       font-size: 16px;
       line-height: 1.6;
-      margin-bottom: 25px;
+      margin-bottom: 30px;
     }
 
     .highlight {
@@ -219,20 +220,23 @@ export const PASSWORD_RESET_TEMPLATE = `
 
     .otp-container {
       text-align: center;
-      margin: 30px 20px;
-      margin-bottom: 20px;
+      margin: 30px 0;
+      background-color: #FFF3E0;
+      border-radius: 6px;
+      padding: 20px;
     }
 
     .otp-code {
-      background-color: #F5F7FA;
-      border: 1px dashed #CCCCCC;
+      background-color: #ffffff;
+      border: 2px solid #FF5722;
       border-radius: 8px;
       font-size: 28px;
       font-weight: 700;
       letter-spacing: 5px;
-      color: #333333;
+      color: #FF5722;
       padding: 15px 25px;
       display: inline-block;
+      margin-top: 10px;
     }
 
     .warning {
@@ -241,9 +245,8 @@ export const PASSWORD_RESET_TEMPLATE = `
       background-color: #FFF8E1;
       border-left: 4px solid #FFC107;
       padding: 12px 15px;
-      margin: 25px 10px;
+      margin: 25px 0;
       border-radius: 0 4px 4px 0;
-      margin-top: 20px;
     }
 
     .button {
@@ -263,13 +266,11 @@ export const PASSWORD_RESET_TEMPLATE = `
       background: #E64A19;
     }
 
-    .social-links {
-      margin-top: 20px;
-    }
-
-    .social-icon {
-      display: inline-block;
-      margin: 0 8px;
+    .verification-badge {
+      width: 16px;
+      height: 16px;
+      vertical-align: middle;
+      margin-left: 5px;
     }
 
     @media only screen and (max-width: 600px) {
@@ -286,8 +287,8 @@ export const PASSWORD_RESET_TEMPLATE = `
         padding: 20px 25px !important;
       }
       
-      .title {
-        font-size: 22px !important;
+      .greeting {
+        font-size: 20px !important;
       }
       
       .otp-code {
@@ -317,18 +318,13 @@ export const PASSWORD_RESET_TEMPLATE = `
                   <table width="100%" cellspacing="0" cellpadding="0" border="0">
                     <tbody>
                       <tr>
-                        <td class="title">
-                          Password Reset Request
-                        </td>
-                      </tr>
-                      <tr>
-                        <td class="message">
+                        <td class="greeting">
                           Hello {{name}},
                         </td>
                       </tr>
                       <tr>
                         <td class="message">
-                          We received a request to reset the password for your account with the email address: <span class="highlight">{{email}}</span>
+                          We received a request to reset the password for your account with the email address: <span class="highlight">{{email}}</span>. If this was you, you can reset your password using the options below.
                         </td>
                       </tr>
                       <tr>
@@ -339,34 +335,48 @@ export const PASSWORD_RESET_TEMPLATE = `
                       <tr>
                         <td style="text-align: center; padding: 25px 0;">
                           <a href="{{resetLink}}" class="button">
-                            Reset Password
+                            Reset Password Now
                           </a>
                         </td>
                       </tr>
                       <tr>
-                        <td class="message">
-                          Alternatively, if the button doesn't work, you can use this verification code:
+                        <td style="text-align: center; padding-bottom: 20px;">
+                          <p style="margin-bottom: 10px;">Or</p>
+                          <p style="margin: 0; font-size: 14px; color: #666;">Use this verification code:</p>
                         </td>
                       </tr>
                       <tr>
                         <td class="otp-container">
+                          <h3 style="margin-top:0; margin-bottom:10px; color:#FF5722;">Verification Code:</h3>
                           <div class="otp-code">{{otp}}</div>
                         </td>
                       </tr>
                       <tr>
                         <td class="warning">
-                          This link and code will expire in 10 minutes for security reasons. If you didn't request this password reset, please ignore this email or contact our support team.
+                          <strong>Security Notice:</strong> This link and code will expire in 10 minutes for security reasons. If you didn't request this password reset, please ignore this email or contact our support team immediately.
+                        </td>
+                      </tr>
+                      <tr>
+                        <td class="message">
+                          <span class="highlight">Didn't request this reset?</span> Your account security may be at risk. Please secure your account immediately.
+                        </td>
+                      </tr>
+                      <tr>
+                        <td style="text-align: center; padding-bottom: 20px;">
+                          <a href="https://finvista-app.vercel.app/contact-us" style="color: #FF5252; text-decoration: underline; font-weight: 500;">
+                            Report Unauthorized Access
+                          </a>
                         </td>
                       </tr>
                       <tr>
                         <td class="message" style="font-size: 14px;">
-                          If you're having trouble with the reset process, please contact our support team at <span class="highlight">support@yourdomain.com</span>.
+                          If you're having trouble with the reset process, please contact our support team at <span class="highlight">finvistafinancemanagementapp@gmail.com</span><img src="https://img.icons8.com/?size=100&id=2sZ0sdlG9kWP&format=png&color=000000" alt="Verified" class="verification-badge">.
                         </td>
                       </tr>
                       <tr>
                         <td style="padding-top: 20px; font-size: 15px;">
-                          Regards,<br>
-                          <span style="font-weight: 500;">Security Team at Your Company</span>
+                          Thank you,<br>
+                          <span style="font-weight: 500;">The Security Team</span>
                         </td>
                       </tr>
                     </tbody>
@@ -377,10 +387,7 @@ export const PASSWORD_RESET_TEMPLATE = `
                 <td class="footer">
                   <p>&copy; 2025 Finvista. All rights reserved.</p>
                   <p>Pradhikaran, Pune, IN</p>
-                  <p style="margin-top: 15px; font-size: 11px;">
-                    For security reasons, if you did not request this password reset, please secure your account by <a href="#" style="color: #FF5722; text-decoration: underline;">contacting us</a> immediately.
-                  </p>
-                  <p><a href="https://yourapp.com">Visit our website</a> | <a href="mailto:support@yourapp.com">Contact Support</a></p>
+                  <p><a href="https://finvista-app.vercel.app/">Visit our website</a> | <a href="https://finvista-app.vercel.app/contact-us">Contact Support</a></p>
                 </td>
               </tr>
             </tbody>
@@ -2372,13 +2379,11 @@ export const PASSWORD_CHANGE_NOTIFICATION_TEMPLATE = `
       border-top: 1px solid #EEEEEE;
     }
 
-    .social-links {
-      margin-top: 20px;
-    }
-
-    .social-icon {
-      display: inline-block;
-      margin: 0 8px;
+    .verification-badge {
+      width: 16px;
+      height: 16px;
+      vertical-align: middle;
+      margin-left: 5px;
     }
 
     @media only screen and (max-width: 600px) {
@@ -2426,7 +2431,7 @@ export const PASSWORD_CHANGE_NOTIFICATION_TEMPLATE = `
                       </tr>
                       <tr>
                         <td class="message">
-                          We're sending this email to confirm that your account password has been <span class="highlight">successfully changed</span>. This change was made on:
+                          We're sending this email to confirm that your account password has been <span class="highlight">successfully changed</span>. If this was you, you can ignore this message. If not, please take immediate action to secure your account.
                         </td>
                       </tr>
                       <tr>
@@ -2445,20 +2450,20 @@ export const PASSWORD_CHANGE_NOTIFICATION_TEMPLATE = `
                             </thead>
                             <tbody>
                               <tr>
-                                <td><strong>Location:</strong></td>
-                                <td>{{location}}</td>
-                              </tr>
-                              <tr>
                                 <td width="40%"><strong>Device:</strong></td>
                                 <td>{{device}}</td>
+                              </tr>
+                              <tr>
+                                <td><strong>Browser:</strong></td>
+                                <td>{{browser}}</td>
                               </tr>
                               <tr>
                                 <td><strong>IP Address:</strong></td>
                                 <td>{{ipAddress}}</td>
                               </tr>
                               <tr>
-                                <td><strong>Browser:</strong></td>
-                                <td>{{browser}}</td>
+                                <td><strong>Location:</strong></td>
+                                <td>{{location}}</td>
                               </tr>
                               <tr>
                                 <td><strong>Operating System:</strong></td>
@@ -2470,13 +2475,13 @@ export const PASSWORD_CHANGE_NOTIFICATION_TEMPLATE = `
                       </tr>
                       <tr>
                         <td class="message">
-                          <span class="highlight">Didn't change your password?</span> If you did not make this change, someone else may have access to your account. Please secure your account immediately.
+                          <span class="highlight">Didn't change your password?</span> Your account security may be at risk. Please secure your account immediately by changing your password again.
                         </td>
                       </tr>
                       <tr>
                         <td style="padding: 20px 0 30px; text-align: center;">
-                          <a href="https://yourwebsite.com/secure-account" class="button">
-                            Secure My Account
+                          <a href="https://yourwebsite.com/change-password" class="button">
+                            Change Password Now
                           </a>
                         </td>
                       </tr>
@@ -2484,13 +2489,13 @@ export const PASSWORD_CHANGE_NOTIFICATION_TEMPLATE = `
                         <td style="text-align: center; padding-bottom: 20px;">
                           <p style="margin-bottom: 10px;">Or</p>
                           <a href="https://yourwebsite.com/report-unauthorized-access" style="color: #FF5252; text-decoration: underline; font-weight: 500;">
-                            Report Unauthorized Activity
+                            Report Unauthorized Access
                           </a>
                         </td>
                       </tr>
                       <tr>
                         <td class="message" style="font-size: 14px;">
-                          For additional security, we recommend enabling two-factor authentication for your account. If you need any assistance, please contact our support team at <span class="highlight">support@yourcompany.com</span>.
+                          For additional security, we recommend enabling two-factor authentication for your account. If you need help securing your account, please contact our support team at <span class="highlight">finvistafinancemanagementapp@gmail.com</span><img src="https://img.icons8.com/?size=100&id=2sZ0sdlG9kWP&format=png&color=000000" alt="Verified" class="verification-badge">.
                         </td>
                       </tr>
                       <tr>
@@ -2507,7 +2512,7 @@ export const PASSWORD_CHANGE_NOTIFICATION_TEMPLATE = `
                 <td class="footer">
                   <p>&copy; 2025 Finvista. All rights reserved.</p>
                   <p>Pradhikaran, Pune, IN</p>
-                  
+                  <p><a href="https://finvista-app.vercel.app/">Visit our website</a> | <a href="https://finvista-app.vercel.app/contact-us">Contact Support</a></p>
                 </td>
               </tr>
             </tbody>

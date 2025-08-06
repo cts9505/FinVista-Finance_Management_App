@@ -231,6 +231,47 @@ export const BudgetPage = () => {
         }
     }, [isLoading, monthlyBudgetRecord]);
 
+    useEffect(() => {
+        // Return early if data is still loading
+        if (isLoading) {
+            return;
+        }
+
+        // Define a unique ID for our specific notification
+        const budgetWarningId = 'monthly-budget-warning';
+
+        if (parseFloat(monthlyBudget) === 0) {
+            const message = "Monthly budget is zero. You can set it under the Profile tab -> Financial Info!";
+
+            // 1. Show the pop-up toast notification
+            toast.warn(message, {
+                toastId: "monthly-budget-toast",
+            });
+
+            // 2. Add the notification to the on-page list (if it's not already there)
+            setNotifications(prevNotifications => {
+                const alreadyExists = prevNotifications.some(n => n.id === budgetWarningId);
+                if (!alreadyExists) {
+                    return [
+                        ...prevNotifications,
+                        {
+                            id: budgetWarningId, // Use a static ID to prevent duplicates
+                            message: message,
+                            type: "warning", // This will give it a yellow background
+                        },
+                    ];
+                }
+                return prevNotifications;
+            });
+
+        } else {
+            // If the budget is set (not zero), remove the warning from the on-page list
+            setNotifications(prevNotifications =>
+                prevNotifications.filter(n => n.id !== budgetWarningId)
+            );
+        }
+    }, [monthlyBudget, isLoading]); // Effect dependencies
+
     const generatePeriodOptions = useCallback(() => {
         const options = [{ value: "monthly", label: "Monthly (Till end of this month)" }];
         if (monthsLeftInYear >= 3) options.push({ value: "quarterly", label: "Quarterly (for next 3 months)" });

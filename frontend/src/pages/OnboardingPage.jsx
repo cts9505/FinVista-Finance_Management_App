@@ -276,7 +276,7 @@ const OnboardingPage = () => {
                   <div className="mb-4">
                     <p className="text-gray-600 text-m">Yearly Income in words :
                     <span className="text-gray-700 italic">
-                    {formData.yearlyIncome ? `   Rupees ${convertToWords(formData.yearlyIncome)} only` : "  No income entered"}
+                    {formData.yearlyIncome ? `Rupees ${convertToWords(formData.yearlyIncome)} only` : "  No income entered"}
                     </span></p>
                   </div>
 

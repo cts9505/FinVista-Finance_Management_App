@@ -12,6 +12,7 @@ import geoip from 'geoip-lite';
 import useragent from 'express-useragent';
 import { deleteImage } from "./imageController.js";
 import { redis } from '../config/redis.js'; 
+import BudgetModel from "../models/BudgetModel.js";
 
 // At the top of your authController.js file
 
@@ -36,24 +37,30 @@ const generateInitialBudgets = async (userId) => {
     const year = today.getFullYear() + Math.floor(month / 12);
     const normalizedMonth = month % 12;
 
-    const startDate = new Date(year, normalizedMonth, 1, 0, 0, 0);
+    // ✅ Start of the month
+    const startDate = new Date(year, normalizedMonth, 1, 0, 0, 0, 0);
+
+    // ✅ End of the month (last day, 23:59:59.999)
     const endDate = new Date(year, normalizedMonth + 1, 0, 23, 59, 59, 999);
 
     budgets.push({
-      userId: userId,
+      userId,
       title: "Monthly Budget",
       amount: 0,
       used: 0,
-      category: "General",
+      category: "Income",
+      emoji: "💰",
       period: "monthly",
-      autoRenew: true,
-      startDate: startDate,
-      endDate: endDate,
+      autoRenew: false,
+      startDate,
+      endDate,
     });
   }
-  
+
   return await BudgetModel.insertMany(budgets);
 };
+
+
 
 
 // Location detection function with fallback
@@ -233,17 +240,24 @@ export const register = async (req, res) => {
     await user.save();
 
     const createdBudgets = await generateInitialBudgets(user._id);
-    
-    // Also update the monthlyBudgets array in the user model
+
+    // Map to lightweight data for user.onboardingData.monthlyBudgets
     const monthlyBudgetsForUser = createdBudgets.map(budget => ({
       month: budget.startDate.getMonth() + 1,
       year: budget.startDate.getFullYear(),
       amount: budget.amount,
-      createdAt: budget.createdAt,
-      _id: budget._id 
+      _id: budget._id,
+      createdAt: budget.createdAt
     }));
-    
+
+    // ✅ Ensure onboardingData exists
+    if (!user.onboardingData) {
+      user.onboardingData = {};
+    }
+
     user.onboardingData.monthlyBudgets = monthlyBudgetsForUser;
+    await user.save(); // ✅ Save user again to persist onboardingData
+
 
     const mailOptionswel = { 
       from: process.env.SENDER_EMAIL,
@@ -610,17 +624,23 @@ export const googleAuth = async (req, res) => {
           });
           const createdBudgets = await generateInitialBudgets(user._id);
 
+          // Map to lightweight data for user.onboardingData.monthlyBudgets
           const monthlyBudgetsForUser = createdBudgets.map(budget => ({
             month: budget.startDate.getMonth() + 1,
             year: budget.startDate.getFullYear(),
             amount: budget.amount,
-            createdAt: budget.createdAt,
-            _id: budget._id
+            _id: budget._id,
+            createdAt: budget.createdAt
           }));
 
-          user.onboardingData.monthlyBudgets = monthlyBudgetsForUser;
+          // ✅ Ensure onboardingData exists
+          if (!user.onboardingData) {
+            user.onboardingData = {};
+          }
 
-          await user.save();
+          user.onboardingData.monthlyBudgets = monthlyBudgetsForUser;
+          await user.save(); // ✅ Save user again to persist onboardingData
+
       } 
       else {
           const updatedUser = await userModel.findById(user._id);
@@ -1206,7 +1226,26 @@ export const updateOnboardingData = async (req, res) => {
             ? onboardingData.riskLevel
             : user.onboardingData?.riskLevel || "Moderate",
       };
-  
+
+            // 🧠 Generate new 12-month budgets for user
+      const createdBudgets = await generateInitialBudgets(user._id);
+
+      // 📌 Map those into onboardingData.monthlyBudgets
+      const monthlyBudgetsForUser = createdBudgets.map((budget) => ({
+        month: budget.startDate.getMonth() + 1,
+        year: budget.startDate.getFullYear(),
+        amount: budget.amount,
+        _id: budget._id,
+        createdAt: budget.createdAt,
+      }));
+
+      // 🔄 Ensure onboardingData exists before assigning
+      if (!user.onboardingData) {
+        user.onboardingData = {};
+      }
+
+      user.onboardingData.monthlyBudgets = monthlyBudgetsForUser;
+
       // Only set isOnboardingComplete to true if it’s not already true and data is provided
       if (!user.isOnboardingComplete && Object.keys(onboardingData).length > 0) {
         user.isOnboardingComplete = true;
