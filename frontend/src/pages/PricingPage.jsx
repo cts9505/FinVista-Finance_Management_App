@@ -359,9 +359,6 @@ const PricingPage = () => {
               <button className="bg-blue-600 text-white px-8 py-4 rounded-lg text-lg font-semibold hover:bg-blue-700 transition-all flex items-center justify-center shadow-lg hover:scale-105 hover:shadow-xl">
                 Start Free Trial <ArrowRight className="ml-2" size={20} />
               </button>
-              <button className="border-2 border-gray-300 text-gray-700 px-8 py-4 rounded-lg text-lg font-semibold hover:border-blue-600 hover:text-blue-600 transition-all hover:scale-105">
-                Watch Demo
-              </button>
               </Link>
             </div>
             
@@ -631,9 +628,6 @@ const PricingPage = () => {
               <Link to="/login">
               <button className="bg-white text-blue-600 px-8 py-4 rounded-lg text-lg font-semibold hover:bg-gray-100 transition-all flex items-center justify-center hover:scale-105 hover:shadow-xl">
                 Start Your Free Trial <ArrowRight className="ml-2" size={20} />
-              </button>
-              <button className="border-2 border-white text-white px-8 py-4 rounded-lg text-lg font-semibold hover:bg-white hover:text-blue-600 transition-all hover:scale-105">
-                Schedule Demo
               </button>
               </Link>
             </div>
