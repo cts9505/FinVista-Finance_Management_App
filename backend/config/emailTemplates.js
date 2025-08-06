@@ -447,6 +447,13 @@ export const WELCOME_TEMPLATE =   `
       height: auto;
     }
 
+    .verification-badge {
+      width: 24px;
+      height: 24px;
+      vertical-align: middle;
+      margin-left: 8px;
+    }
+
     .main-content {
       padding: 40px 50px;
       color: #333333;
@@ -535,7 +542,7 @@ export const WELCOME_TEMPLATE =   `
               <tr>
                 <td class="header">
                   <img src="https://res.cloudinary.com/dio9gtrxc/image/upload/v1744794208/Logo.png" alt="Company Logo" class="logo">
-                  <h2 style="margin-top: 15px; margin-bottom: 0;">Registration</h2>
+                  <h2 style="margin-top: 15px; margin-bottom: 0;">Registration <img src="https://img.icons8.com/?size=100&id=2sZ0sdlG9kWP&format=png&color=000000" alt="Verification Badge" class="verification-badge"></h2>
                 </td>
               </tr>
               <tr>
@@ -571,7 +578,7 @@ export const WELCOME_TEMPLATE =   `
                       </tr>
                       <tr>
                         <td class="message" style="font-size: 14px;">
-                          If you have any questions or need assistance, please contact our support team at <span class="highlight">support@yourcompany.com</span>.
+                          If you have any questions or need assistance, please contact our support team at <span class="highlight">finvistafinancemanagementapp@gmail.com</span>.
                         </td>
                       </tr>
                       <tr>
@@ -588,7 +595,7 @@ export const WELCOME_TEMPLATE =   `
                 <td class="footer">
                   <p>&copy; 2025 Finvista. All rights reserved.</p>
                   <p>Pradhikaran, Pune, IN</p>
-                  <p><a href="https://yourapp.com">Visit our website</a> | <a href="mailto:support@yourapp.com">Contact Support</a></p>
+                  <p><a href="https://finvista-app.vercel.app/">Visit our website</a> | <a href="https://finvista-app.vercel.app/contact-us">Contact Support</a></p>
                 </td>
               </tr>
             </tbody>
@@ -945,7 +952,7 @@ export const GOOGLE_TEMPLATE = `
                       <tr>
                         <td>
                           <div class="verification-box">
-                            <img src="/api/placeholder/60/60" alt="Verified" width="60" height="60">
+                            <img src="https://img.icons8.com/?size=100&id=2sZ0sdlG9kWP&format=png&color=000000" alt="Verified" width="60" height="60">
                             <h2 style="margin-top: 15px; margin-bottom: 10px; color: #4C83EE;">Account Verified</h2>
                             <p style="margin: 0;">You don't need to verify your account as you signed in with Google.</p>
                           </div>
@@ -958,7 +965,7 @@ export const GOOGLE_TEMPLATE = `
                       </tr>
                       <tr>
                         <td style="padding: 20px 0 30px; text-align: center;">
-                          <a href="#" class="button">
+                          <a href="https://finvista-app.vercel.app/" class="button">
                             Go to Dashboard
                           </a>
                         </td>
@@ -977,7 +984,7 @@ export const GOOGLE_TEMPLATE = `
                 <td class="footer">
                   <p>&copy; 2025 Finvista. All rights reserved.</p>
                   <p>Pradhikaran, Pune, IN</p>
-                  <p><a href="https://yourapp.com">Visit our website</a> | <a href="mailto:support@yourapp.com">Contact Support</a></p>
+                  <p><a href="https://finvista-app.vercel.app/">Visit our website</a> | <a href="https://finvista-app.vercel.app/contact-us">Contact Support</a></p>
                 </td>
               </tr>
             </tbody>
@@ -1657,6 +1664,13 @@ export const NEW_DEVICE_ALERT_TEMPLATE = `<!DOCTYPE html>
       margin: 0 8px;
     }
 
+    .verification-badge {
+      width: 16px;
+      height: 16px;
+      vertical-align: middle;
+      margin-left: 5px;
+    }
+
     @media only screen and (max-width: 600px) {
       .container {
         width: 95% !important;
@@ -1766,7 +1780,7 @@ export const NEW_DEVICE_ALERT_TEMPLATE = `<!DOCTYPE html>
                       </tr>
                       <tr>
                         <td class="message" style="font-size: 14px;">
-                          For additional security, we recommend enabling two-factor authentication for your account. If you need help securing your account, please contact our support team at <span class="highlight">support@yourcompany.com</span>.
+                          For additional security, we recommend enabling two-factor authentication for your account. If you need help securing your account, please contact our support team at <span class="highlight">finvistafinancemanagementapp@gmail.com</span><img src="https://img.icons8.com/?size=100&id=2sZ0sdlG9kWP&format=png&color=000000" alt="Verified" class="verification-badge">.
                         </td>
                       </tr>
                       <tr>
@@ -1783,7 +1797,7 @@ export const NEW_DEVICE_ALERT_TEMPLATE = `<!DOCTYPE html>
                 <td class="footer">
                   <p>&copy; 2025 Finvista. All rights reserved.</p>
                   <p>Pradhikaran, Pune, IN</p>
-                  <p><a href="https://yourapp.com">Visit our website</a> | <a href="mailto:support@yourapp.com">Contact Support</a></p>
+                  <p><a href="https://finvista-app.vercel.app/">Visit our website</a> | <a href="https://finvista-app.vercel.app/contact-us">Contact Support</a></p>
                 </td>
               </tr>
             </tbody>

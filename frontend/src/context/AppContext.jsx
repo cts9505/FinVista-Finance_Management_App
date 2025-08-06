@@ -39,10 +39,7 @@ export const AppContextProvider = ({ children }) => {
             setIsLoggedin(false);
             setUserData(undefined);
         }
-        setTimeout(() => {
-            setLoading(false);  // 🔥 Done loading
-        }, 10000);
-        // setLoading(false);  // 🔥 Done loading
+        setLoading(false); // 🔥 Stop loading
     };
 
     const getUserData = async () => {
