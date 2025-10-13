@@ -197,7 +197,7 @@ export const chatWithAI = async (req, res) => {
     // 2. Initialize the Google AI Client and model
     const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY);
     const model = genAI.getGenerativeModel({
-      model: "gemini-1.5-flash",
+      model: "gemini-2.5-flash",
       generationConfig: {
         maxOutputTokens: 2048,
         temperature: 0.2,
@@ -323,7 +323,7 @@ export const getDailyInsight = async (req, res) => {
 
       const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY);
       const model = genAI.getGenerativeModel({
-        model: "gemini-1.5-flash",
+        model: "gemini-2.5-flash",
         generationConfig: { maxOutputTokens: 256, temperature: 0.3 }
       });
 
